@@ -1,0 +1,12 @@
+{
+  "name": "The Brief",
+  "short_name": "The Brief",
+  "description": "AI-Powered Creative Briefs",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0A0A0A",
+  "theme_color": "#E85D26",
+  "icons": [
+    { "src": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0naHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmcnIHZpZXdCb3g9JzAgMCAxMDAgMTAwJz48cmVjdCB3aWR0aD0nMTAwJyBoZWlnaHQ9JzEwMCcgcng9JzE1JyBmaWxsPScjMEEwQTBBJy8+PC9zdmc+", "sizes": "192x192", "type": "image/svg+xml" }
+  ]
+}

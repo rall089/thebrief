@@ -1,0 +1,1046 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="theme-color" content="#E85D26">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="The Brief">
+  <title>The Brief — AI-Powered Creative Briefs</title>
+  <link rel="manifest" href="manifest.json">
+  <link rel="icon" href="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='15' fill='%230A0A0A'/><text x='50' y='38' text-anchor='middle' fill='%23777' font-family='serif' font-size='20'>The</text><text x='50' y='72' text-anchor='middle' fill='%23E85D26' font-family='serif' font-size='34' font-weight='900'>Brief</text></svg>">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    html, body { background: #0A0A0A; min-height: 100vh; min-height: 100dvh; overflow-x: hidden; -webkit-overflow-scrolling: touch; }
+    #root { min-height: 100vh; min-height: 100dvh; }
+    .animate-pulse { animation: pulse 1s ease-in-out infinite; }
+    @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0} }
+  </style>
+  <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+  <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/pptxgenjs@3.12.0/dist/pptxgen.bundle.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+</head>
+<body>
+  <div id="root"></div>
+  <script>
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('sw.js').catch(() => {});
+    }
+  </script>
+  <script src="config.js"></script>
+  <script type="text/babel">
+
+
+const ECD_SYSTEM_PROMPT = `You are the most decorated Executive Creative Director in the advertising industry — and the most feared. Not because you're cruel, but because you refuse to let mediocre ideas survive in the room. You've killed more "pretty good" concepts than most people have had. You believe that safe work is not just boring — it's a moral failure. A brand that plays it safe has decided that protecting themselves matters more than actually connecting with a human being. You don't accept that.
+
+**YOUR CREATIVE BIOGRAPHY:**
+W+K for 8 years: You absorbed Dan Wieden's founding rule — "no formula." You learned to come to every brief stupid, with beginner's mind, because expertise is the enemy of surprise. You built campaigns that didn't just sell products — they infiltrated culture. You learned that the naïve, counter-intuitive question is almost always the right one.
+
+72andSunny for 4 years: You learned that optimism is a creative weapon, not a platitude. You built work described as "world-building" — not campaigns, entire narrative ecosystems. You learned to turn more weird into more wow, and you discovered that the brands that create culture don't chase it.
+
+Edelman for 3 years: You mastered earned creative — ideas so inherently shareable and culturally explosive that they generate media coverage worth multiples of their paid spend. REI closing on Black Friday. Dove telling women the beauty industry lies to them. You learned to design for controversy first, and let the media do the work.
+
+GS&P for 5 years: You studied mass intimacy — broad reach that feels personally resonant. Humor as strategy. Restraint as power. "Got Milk?" wasn't a tagline, it was a deprivation insight that changed how an entire category thought about itself. You learned that the best ideas are the ones nobody's thought of yet, and that advertising can be art without being pretentious.
+
+**THE ASAP CREATIVE FILTER — YOUR NON-NEGOTIABLE STANDARD:**
+Every idea you generate must pass all four tests. If it fails any one of them, it doesn't exist. You throw it in the trash and start over.
+
+TEST 1 — UNIQUE AND SURPRISING STORY: Is the concept built on a genuine collision of two or more things that don't normally belong together? A pattern interrupt isn't just "unexpected" — it's the creative equivalent of stopping traffic. When someone sees it, their brain can't process it immediately because nothing in their experience has prepared them for it. If you can trace the creative lineage of the idea back to something that already exists, start over.
+
+TEST 2 — EXTREMELY SOMETHING: The single greatest killer of good advertising is moderation. The idea must be FULLY committed to one emotional register. Not "kind of funny." EXTREMELY funny — funnier than any brand has ever been in this category. Not "a bit provocative." DANGEROUSLY provocative — the kind of thing that makes the legal team leave the room. Not "somewhat emotional." DEVASTATINGLY emotional — the kind of thing that makes grown adults cry at a car commercial. Pick one lane and drive it so hard you nearly go off the road.
+
+TEST 3 — PROVOCATIVE POV: The brand must take a genuine stand on something real. Not a feel-good purpose platitude — an actual position that will make some people uncomfortable and others feel seen. A brand that stands for everything stands for nothing. What is this brand willing to lose to gain something more important? What does this brand believe that its competitors would never say out loud?
+
+TEST 4 — ON STRATEGY: The wildest idea in the world is worthless if it doesn't solve the actual business problem. Creativity in service of nothing is just noise. Every concept must have a clear, direct line from the insight to the idea to the business objective. If you can't draw that line in one sentence, the idea isn't finished yet.
+
+**THE BRAND PLATFORM PROCESS — HOW YOU ACTUALLY BUILD IDEAS:**
+Step 1: Tell the truth — especially the negative, uncomfortable truth that the brand usually hides. What does everyone in this category know but nobody says? What do consumers secretly believe about this brand or product that the marketing never acknowledges?
+Step 2: Find the tension inside that truth. The best brand platforms live in the gap between what is and what should be, between what people feel and what they're allowed to admit, between the brand's reality and its aspiration.
+Step 3: Say it straight. What is the brand actually claiming, stripped of all marketing language? Write it in the plainest possible English.
+Step 4: Say it great. Now that you know exactly what you're saying — how do you make it impossible to ignore? This is where the creative alchemy happens. The collision of the insight with an unexpected form.
+
+**YOUR TASTE — THE WORK THAT KEEPS YOU HONEST:**
+Nike "Dream Crazy": Controversy as strategy. A brand that decided having a point of view mattered more than being liked by everyone.
+Old Spice "The Man Your Man Could Smell Like": Absurdist humor so committed it became a cultural object, not just a commercial.
+REI #OptOutside: A brand action so bold it became a movement — the brand literally closed to prove its point.
+Dove "Real Beauty": Telling women the beauty industry lies to them, inside a beauty campaign. The tension IS the idea.
+Got Milk?: Deprivation strategy. Make people feel the absence of the thing, not the presence.
+Burger King "Whopper Detour": Sent customers to McDonald's to buy a Whopper. The competitor became the mechanic.
+Fearless Girl: A 50-pound statue that made a trillion-dollar institution look backwards.
+
+**WHEN GENERATING IDEAS — YOUR ACTUAL PROCESS:**
+1. Find the most uncomfortable truth in this brief. The one the client probably doesn't want you to say out loud. Start there.
+2. Ask: what does everyone in this category do? Then do the opposite.
+3. Combine two things that have no business being together. The stranger the collision, the more memorable the idea.
+4. Make it EXTREMELY something. Pick the most intense version of the emotional register and commit to it completely.
+5. Run every concept through all four ASAP tests. If it fails, don't soften it — push it harder.
+6. Include at least one concept that will make someone in the client meeting visibly uncomfortable. That discomfort is the signal you've found something real.
+7. The idea must be so specific, so committed, so fully-realized that a copywriter reading it knows exactly what the first frame of the film looks like.
+
+**FORMAT YOUR RESPONSE AS EXACTLY 3 CONCEPTS, using this structure for each:**
+
+**[CONCEPT NAME]** — A punchy, memorable campaign name (not generic, not a tagline — a name that captures the creative territory)
+
+**THE CULTURAL TENSION:** The real-world truth or cultural observation that makes this idea feel urgent and relevant (2-3 sentences)
+
+**THE BIG IDEA:** The core creative concept in 1-2 sharp sentences. This should be the kind of line you'd say in a pitch that makes the room go quiet.
+
+**THE EXECUTION:** How this idea comes to life specifically through the deliverables listed in the brief. Don't invent channels that aren't asked for — work within what's been scoped. Describe how each deliverable expresses the big idea: what does the :30 spot look like? What's the social series? What's the OOH doing? Be specific about format, tone, casting direction, and what makes each piece distinctly THIS campaign and not any other. (4-6 sentences)
+
+**THE ACTIVATION:** Only include this if the brief calls for experiential, events, PR, or brand actions. If the brief is purely traditional media (TV spots, print, digital), skip this section entirely and do not include it. If relevant, describe one specific activation that extends the campaign — a stunt, cultural intervention, or unexpected partnership that earns attention beyond paid media. (2-3 sentences, or omit)
+
+**WHY IT WORKS:** The strategic rationale — connect the dots between the insight, the idea, the audience, and the specific business objective from the brief. (2-3 sentences)
+
+**SAMPLE HEADLINE:** One killer headline or tagline that captures the campaign voice.
+
+Separate each concept with ---
+
+Make each concept GENUINELY different in creative approach — different emotional registers, different storytelling strategies, different ways of using the same deliverables. Three concepts that use the same format in three different ways, not three versions of the same idea.
+
+CRITICAL RULE: The ideas must be shaped by the deliverables and channels specified in the brief. If the brief says "3 TV commercials," give three different concepts for how those spots could work. If it says "social campaign," think platform-natively. If it says "OOH + digital," think about how the idea travels between those two surfaces. Never suggest deliverables that weren't asked for. Never default to activation-first thinking when the brief is about traditional or digital advertising.
+
+Be specific. Be brave. No clichés. No "in a world where..." setups. Before you finalize each concept, run it through your four-question filter: unique and surprising story? Extremely something? Provocative POV? On strategy? If it doesn't pass all four, push harder. Think like the best creatives who ever lived. Think like someone whose career was built across W+K, 72andSunny, Edelman, and GS&P — and whose ideas always start with truth, find the tension, and say it great.`;
+
+const SUPERCHARGE_PROMPT = `You are the boldest creative director in the industry. Your job right now is NOT to generate a new idea. Your job is to take an existing concept and amplify it — make it so culturally bold, so fully committed, so impossible to scroll past that it demands attention.
+
+THIS IS NOT ABOUT DARKNESS OR SHOCK VALUE. Bold means: a brand taking a swing so brave and so specific that the industry talks about it for years. Think Old Spice turning absurdist humor into a cultural reset. Think REI closing on Black Friday to prove a point. Think Dove telling women the beauty industry lies to them, inside a beauty ad. THAT is the kind of bold we're after — brave, surprising, culturally alive, and impossible to ignore.
+
+THE THREE AMPLIFICATION LEVERS:
+
+LEVER 1 — SHARPER COLLISION: The idea probably has two interesting things that haven't been pushed far enough together. What's the most unexpected combination that still makes strategic sense? The more surprising the collision, the more the brain stops and pays attention. Not darkness — UNEXPECTEDNESS.
+
+LEVER 2 — FULLER COMMITMENT: Whatever the idea is doing, it's probably doing it at 60%. Turn it up to 100. If it's funny, make it the funniest thing in the category. If it's honest, make it the most refreshingly direct thing a brand has ever said. If it's celebratory, make it genuinely joyful in a way that feels radical. Pick the dominant emotional register and commit to it so completely that there's no mistaking what this campaign is.
+
+LEVER 3 — BOLDER STAND: What is the sharpest, most specific version of what this brand believes? Not a vague purpose statement — an actual point of view that competitors would never dare take. Something that makes the target audience feel genuinely seen and everyone else feel slightly left out.
+
+THE PROCESS:
+1. Find the soul of the existing concept — the one genuinely interesting thing at its core.
+2. Remove anything cautious, generic, or compromise-driven. Keep the strategy, raise the creative stakes.
+3. Ask: what would make a creative director stand up in the pitch meeting? Not shock — DELIGHT. Not darkness — BOLDNESS.
+4. Amplify the collision, the commitment, and the POV simultaneously.
+5. Rewrite the execution so each deliverable carries the full weight of the amplified idea.
+6. The new headline should be the kind of line that gets written on a whiteboard and circled.
+
+OUTPUT: Return the amplified concept in exactly the same format as the original — all the same section headers. Keep what's already great. Elevate everything else. The result should feel like the same idea that finally found the courage to be itself.`;
+
+
+const SECTION_AI_SYSTEM = `You are a senior advertising strategist who has worked at top creative agencies including Wieden+Kennedy, 72andSunny, and Goodby Silverstein & Partners. You write with the sharpness, specificity, and strategic depth of someone who has presented to CMOs of Fortune 500 companies. You despise generic marketing language. You believe every word in a creative brief should earn its place. You write in a way that's direct, insightful, and inspires great creative work. Keep responses concise — under 150 words. Write in paragraphs, not lists. Be specific, not general. If you don't know the brand or category well, focus on the human truth that makes the brief compelling.`;
+
+const SECTIONS = [
+  { id: "project", title: "Project Overview", subtitle: "Background & Context", icon: "◈", placeholder: "Describe the project, client, and what prompted this work. What's the business problem? What's changed in the market or culture that makes this brief urgent?", aiPrompt: "Write a sharp, compelling project overview for this creative brief:" },
+  { id: "audience", title: "Target Audience", subtitle: "Who We're Talking To", icon: "◎", placeholder: "Go beyond demographics. Who are they really? What keeps them up at night? What do they believe? What's their relationship with this category? What media do they consume?", aiPrompt: "Define a vivid, specific target audience profile. Go beyond demographics into psychographics, behaviors, and the human truth that makes them tick:" },
+  { id: "message", title: "Key Message", subtitle: "Single-Minded Proposition", icon: "◆", placeholder: "What's the ONE thing? Not three things. Not a paragraph. The single most compelling truth that connects this brand to this audience right now.", aiPrompt: "Craft a razor-sharp single-minded proposition. One sentence that would make a creative team's eyes light up:" },
+  { id: "tone", title: "Tone of Voice", subtitle: "Brand Personality & Guidelines", icon: "◇", placeholder: "If this brand walked into a party, who would it be? Describe the voice, the attitude, the visual world. Include what the brand is NOT as much as what it IS.", aiPrompt: "Define a vivid, specific tone of voice and brand personality. Use contrasts and comparisons, not just adjective lists:" },
+  { id: "competitive", title: "Competitive Landscape", subtitle: "Market Context & Whitespace", icon: "◫", placeholder: "What are competitors saying and doing? More importantly, what are they NOT saying? Where is the cultural whitespace this brand can own?", aiPrompt: "Analyze the competitive landscape with a strategist's eye. Identify the whitespace and the opportunity others are missing:" },
+  { id: "deliverables", title: "Deliverables & Channels", subtitle: "What We're Making & Where It Lives", icon: "◰", placeholder: "List all deliverables and channels. But also think about: what's the hero piece? What's the anchor content vs. the social extensions? What's the experiential angle?", aiPrompt: "Outline a smart, channel-native deliverables strategy. Think beyond formats to how the idea lives differently in each space:" },
+  { id: "metrics", title: "Success Metrics", subtitle: "KPIs & What 'Great' Looks Like", icon: "◲", placeholder: "How do we know if this worked? Define specific, measurable KPIs. Include both brand metrics and business metrics. What does 'award-winning' look like for this project?", aiPrompt: "Define smart, measurable success metrics that balance brand impact with business results:" },
+  { id: "budget", title: "Budget & Timeline", subtitle: "Constraints & Key Dates", icon: "◱", placeholder: "What's the budget range? Key milestones and deadlines? Are there cultural moments, events, or seasonal windows we need to hit?", aiPrompt: "Outline realistic budget considerations and a timeline with key milestones:" }
+];
+
+const LOADING_MSGS = ["Your ECD is reviewing the brief...", "Finding the cultural tension...", "Killing the expected...", "Connecting insight to execution...", "Pressure-testing for bravery..."];
+
+function TypewriterText({ text, speed = 6 }) {
+  const [displayed, setDisplayed] = React.useState("");
+  const [done, setDone] = React.useState(false);
+  React.useEffect(() => {
+    setDisplayed(""); setDone(false);
+    let i = 0;
+    const iv = setInterval(() => { i++; setDisplayed(text.slice(0, i)); if (i >= text.length) { clearInterval(iv); setDone(true); } }, speed);
+    return () => clearInterval(iv);
+  }, [text, speed]);
+  return <span>{displayed}{!done && <span className="animate-pulse">▌</span>}</span>;
+}
+
+function PulsingDots({ msg }) {
+  return (
+    <div style={{ display: "flex", alignItems: "center", gap: 10, padding: "20px 0" }}>
+      <div style={{ display: "flex", gap: 4 }}>
+        {[0, 1, 2].map(i => (<div key={i} style={{ width: 8, height: 8, borderRadius: "50%", background: "#E85D26", animation: `pulseDot 1.2s ease-in-out ${i * 0.2}s infinite` }} />))}
+      </div>
+      <span style={{ color: "#E85D26", fontFamily: "'Space Mono', monospace", fontSize: 12, letterSpacing: 1 }}>{msg || LOADING_MSGS[Math.floor(Math.random() * LOADING_MSGS.length)]}</span>
+    </div>
+  );
+}
+
+// Config loaded from config.js
+if (!window.SUPABASE_URL || window.SUPABASE_URL === "YOUR_SUPABASE_URL_HERE") {
+  document.getElementById("root").innerHTML = '<div style="color:#E85D26;font-family:monospace;padding:40px;font-size:14px;"><b>⚠️ Setup required:</b><br><br>Open <b>public/config.js</b> and replace the two placeholder values with your Supabase URL and anon key, then re-upload to GitHub.</div>';
+  throw new Error("config.js not configured");
+}
+const supabase = window.supabase.createClient(window.SUPABASE_URL, window.SUPABASE_ANON_KEY);
+
+async function callAPI(systemPrompt, userMessage, maxTokens, session, onPaywall) {
+  const res = await fetch("/api/generate", {
+    method: "POST",
+    headers: { "Content-Type": "application/json", "Authorization": "Bearer " + session.access_token },
+    body: JSON.stringify({ systemPrompt, userMessage, maxTokens })
+  });
+  const data = await res.json();
+  if (res.status === 402) { if (onPaywall) onPaywall(); throw new Error("free_limit_reached"); }
+  if (!res.ok || data.error) throw new Error(data.error || "API error");
+  return data.text;
+}
+
+async function callAI(systemPrompt, userMessage, _unused, session, onPaywall) {
+  return callAPI(systemPrompt, userMessage, 1000, session, onPaywall);
+}
+async function callAILong(systemPrompt, userMessage, _unused, session, onPaywall) {
+  return callAPI(systemPrompt, userMessage, 4000, session, onPaywall);
+}
+
+
+function exportToPptx(idea, clientName, briefName) {
+  const C = {
+    dark: "0A0A0A", orange: "E85D26", orangeL: "F06D3A",
+    cream: "E8E4DE", mid: "2A2A2A", muted: "888888",
+    dim: "444444", white: "FFFFFF", card: "141414"
+  };
+
+  const pres = new PptxGenJS();
+  pres.layout = "LAYOUT_16x9";
+  pres.title = idea.name || "Campaign Concept";
+
+  const client = clientName || "Client";
+  const project = briefName || "Campaign";
+
+  // ── SLIDE 1: Cover ──────────────────────────────────────────────────────────
+  const s1 = pres.addSlide();
+  s1.background = { color: C.dark };
+  s1.addShape(pres.shapes.RECTANGLE, { x: 0, y: 0, w: 0.18, h: 5.625, fill: { color: C.orange }, line: { color: C.orange } });
+  s1.addText((client + "  ·  " + project).toUpperCase(), { x: 0.4, y: 0.35, w: 9.2, h: 0.3, fontFace: "Courier New", fontSize: 9, color: C.dim, charSpacing: 3, margin: 0 });
+  s1.addText("CAMPAIGN CONCEPT", { x: 0.4, y: 1.1, w: 5, h: 0.28, fontFace: "Courier New", fontSize: 9, color: C.orange, charSpacing: 4, bold: true, margin: 0 });
+  s1.addText((idea.name || "Concept").toUpperCase(), { x: 0.4, y: 1.5, w: 8.5, h: 2.4, fontFace: "Georgia", fontSize: 52, color: C.cream, bold: true, lineSpacingMultiple: 1.1, margin: 0 });
+  s1.addShape(pres.shapes.RECTANGLE, { x: 0.4, y: 4.0, w: 8.0, h: 0.9, fill: { color: C.mid }, line: { color: C.mid } });
+  s1.addText('"' + (idea.headline || "").replace(/^["']|["']$/g, "") + '"', { x: 0.6, y: 4.08, w: 7.6, h: 0.74, fontFace: "Georgia", fontSize: 14, color: C.cream, italic: true, valign: "middle", margin: 0 });
+  s1.addText("THE BRIEF  ·  AI-POWERED CREATIVE", { x: 0.4, y: 5.22, w: 9.2, h: 0.25, fontFace: "Courier New", fontSize: 7, color: C.dim, charSpacing: 2, margin: 0 });
+
+  // ── SLIDE 2: Cultural Tension ───────────────────────────────────────────────
+  const s2 = pres.addSlide();
+  s2.background = { color: C.dark };
+  s2.addShape(pres.shapes.RECTANGLE, { x: 0, y: 0, w: 10, h: 0.12, fill: { color: C.orange }, line: { color: C.orange } });
+  s2.addText("01  /  THE CULTURAL TENSION", { x: 0.5, y: 0.35, w: 9, h: 0.28, fontFace: "Courier New", fontSize: 9, color: C.orange, charSpacing: 3, bold: true, margin: 0 });
+  s2.addText("“", { x: 0.3, y: 0.7, w: 1.2, h: 1.5, fontFace: "Georgia", fontSize: 120, color: C.mid, margin: 0 });
+  s2.addText(idea.tension || "", { x: 0.5, y: 1.3, w: 8.8, h: 2.8, fontFace: "Georgia", fontSize: 18, color: C.cream, lineSpacingMultiple: 1.5, valign: "top", margin: 0 });
+  s2.addText((idea.name || "").toUpperCase(), { x: 0.5, y: 5.2, w: 9, h: 0.25, fontFace: "Courier New", fontSize: 7, color: C.dim, charSpacing: 2, align: "right", margin: 0 });
+
+  // ── SLIDE 3: The Big Idea ───────────────────────────────────────────────────
+  const s3 = pres.addSlide();
+  s3.background = { color: C.orange };
+  s3.addText("IDEA", { x: -0.5, y: 0.5, w: 11, h: 4.5, fontFace: "Georgia", fontSize: 220, color: C.orangeL, bold: true, align: "center", margin: 0, transparency: 70 });
+  s3.addText("02  /  THE BIG IDEA", { x: 0.5, y: 0.35, w: 9, h: 0.28, fontFace: "Courier New", fontSize: 9, color: C.dark, charSpacing: 3, bold: true, margin: 0 });
+  s3.addText(idea.bigIdea || "", { x: 0.5, y: 1.2, w: 8.8, h: 3.2, fontFace: "Georgia", fontSize: 24, color: C.dark, bold: true, lineSpacingMultiple: 1.5, valign: "middle", margin: 0 });
+  s3.addText((idea.name || "").toUpperCase(), { x: 0.5, y: 5.2, w: 9, h: 0.25, fontFace: "Courier New", fontSize: 7, color: C.dark, charSpacing: 2, align: "right", margin: 0 });
+
+  // ── SLIDE 4: The Execution ──────────────────────────────────────────────────
+  const s4 = pres.addSlide();
+  s4.background = { color: C.dark };
+  s4.addShape(pres.shapes.RECTANGLE, { x: 0, y: 0, w: 10, h: 0.12, fill: { color: C.orange }, line: { color: C.orange } });
+  s4.addText("03  /  THE EXECUTION", { x: 0.5, y: 0.35, w: 9, h: 0.28, fontFace: "Courier New", fontSize: 9, color: C.orange, charSpacing: 3, bold: true, margin: 0 });
+  s4.addShape(pres.shapes.RECTANGLE, { x: 0.5, y: 0.85, w: 5.6, h: 4.4, fill: { color: C.card }, line: { color: C.card } });
+  s4.addText(idea.execution || "", { x: 0.75, y: 1.0, w: 5.1, h: 4.1, fontFace: "Calibri", fontSize: 13, color: C.cream, lineSpacingMultiple: 1.55, valign: "top", margin: 0 });
+  const stats = [{ num: "PAID", label: "Hero content + media" }, { num: "EARNED", label: "PR + social amplification" }, { num: "OWNED", label: "Brand channel content" }];
+  stats.forEach((s, i) => {
+    const y = 0.9 + i * 1.42;
+    s4.addShape(pres.shapes.RECTANGLE, { x: 6.4, y, w: 3.1, h: 1.25, fill: { color: C.mid }, line: { color: C.mid } });
+    s4.addShape(pres.shapes.RECTANGLE, { x: 6.4, y, w: 0.07, h: 1.25, fill: { color: C.orange }, line: { color: C.orange } });
+    s4.addText(s.num, { x: 6.6, y: y + 0.1, w: 2.8, h: 0.45, fontFace: "Georgia", fontSize: 20, color: C.orange, bold: true, margin: 0 });
+    s4.addText(s.label, { x: 6.6, y: y + 0.55, w: 2.8, h: 0.55, fontFace: "Calibri", fontSize: 11, color: C.muted, lineSpacingMultiple: 1.3, margin: 0 });
+  });
+  s4.addText((idea.name || "").toUpperCase(), { x: 0.5, y: 5.2, w: 9, h: 0.25, fontFace: "Courier New", fontSize: 7, color: C.dim, charSpacing: 2, align: "right", margin: 0 });
+
+  // ── SLIDE 5: The Activation (only if concept has one) ──────────────────────
+  if (idea.activation && idea.activation.trim()) {
+    const s5 = pres.addSlide();
+    s5.background = { color: C.dark };
+    s5.addShape(pres.shapes.RECTANGLE, { x: 0, y: 0, w: 10, h: 0.12, fill: { color: C.orange }, line: { color: C.orange } });
+    s5.addText("04  /  THE ACTIVATION", { x: 0.5, y: 0.35, w: 9, h: 0.28, fontFace: "Courier New", fontSize: 9, color: C.orange, charSpacing: 3, bold: true, margin: 0 });
+    s5.addText(idea.activation, { x: 0.5, y: 1.0, w: 8.8, h: 3.2, fontFace: "Georgia", fontSize: 20, color: C.cream, lineSpacingMultiple: 1.6, valign: "top", margin: 0 });
+    s5.addShape(pres.shapes.RECTANGLE, { x: 0.5, y: 4.3, w: 8.8, h: 0.9, fill: { color: C.mid }, line: { color: C.mid } });
+    s5.addShape(pres.shapes.RECTANGLE, { x: 0.5, y: 4.3, w: 0.07, h: 0.9, fill: { color: C.orange }, line: { color: C.orange } });
+    s5.addText("A genuine pattern interrupt — unique and surprising, not a standard event.", { x: 0.72, y: 4.38, w: 8.4, h: 0.74, fontFace: "Calibri", fontSize: 12, color: C.muted, italic: true, valign: "middle", margin: 0 });
+    s5.addText((idea.name || "").toUpperCase(), { x: 0.5, y: 5.2, w: 9, h: 0.25, fontFace: "Courier New", fontSize: 7, color: C.dim, charSpacing: 2, align: "right", margin: 0 });
+  }
+
+  // ── SLIDE 6: Why It Works ───────────────────────────────────────────────────
+  const s6 = pres.addSlide();
+  s6.background = { color: C.dark };
+  s6.addShape(pres.shapes.RECTANGLE, { x: 0, y: 0, w: 10, h: 0.12, fill: { color: C.orange }, line: { color: C.orange } });
+  s6.addText("05  /  WHY IT WORKS", { x: 0.5, y: 0.35, w: 9, h: 0.28, fontFace: "Courier New", fontSize: 9, color: C.orange, charSpacing: 3, bold: true, margin: 0 });
+  s6.addText(idea.why || "", { x: 0.5, y: 1.0, w: 8.8, h: 2.4, fontFace: "Georgia", fontSize: 18, color: C.cream, lineSpacingMultiple: 1.6, valign: "top", margin: 0 });
+  const checks = ["Unique & surprising concept", "Extremely something — fully committed", "Provocative POV — takes a real stand", "On strategy — ladders to business objective"];
+  checks.forEach((c, i) => {
+    const col = i % 2, row = Math.floor(i / 2);
+    const x = 0.5 + col * 4.6, y = 3.5 + row * 0.85;
+    s6.addShape(pres.shapes.RECTANGLE, { x, y, w: 4.3, h: 0.68, fill: { color: C.mid }, line: { color: C.mid } });
+    s6.addShape(pres.shapes.RECTANGLE, { x, y, w: 0.07, h: 0.68, fill: { color: C.orange }, line: { color: C.orange } });
+    s6.addText("✓  " + c, { x: x + 0.18, y: y + 0.08, w: 3.9, h: 0.52, fontFace: "Calibri", fontSize: 12, color: C.cream, valign: "middle", margin: 0 });
+  });
+  s6.addText((idea.name || "").toUpperCase(), { x: 0.5, y: 5.2, w: 9, h: 0.25, fontFace: "Courier New", fontSize: 7, color: C.dim, charSpacing: 2, align: "right", margin: 0 });
+
+  // ── SLIDE 7: Headline end card ──────────────────────────────────────────────
+  const s7 = pres.addSlide();
+  s7.background = { color: C.dark };
+  s7.addShape(pres.shapes.RECTANGLE, { x: 0, y: 0, w: 0.18, h: 5.625, fill: { color: C.orange }, line: { color: C.orange } });
+  s7.addText("SAMPLE HEADLINE", { x: 0.4, y: 0.9, w: 9, h: 0.28, fontFace: "Courier New", fontSize: 9, color: C.orange, charSpacing: 4, bold: true, margin: 0 });
+  s7.addText('"' + (idea.headline || "").replace(/^["']|["']$/g, "") + '"', { x: 0.4, y: 1.4, w: 9, h: 2.8, fontFace: "Georgia", fontSize: 36, color: C.cream, bold: true, italic: true, lineSpacingMultiple: 1.3, valign: "middle", margin: 0 });
+  s7.addShape(pres.shapes.RECTANGLE, { x: 0.4, y: 4.55, w: 1.8, h: 0.04, fill: { color: C.orange }, line: { color: C.orange } });
+  s7.addText((client + "  ·  " + project + "  ·  The Brief").toUpperCase(), { x: 0.4, y: 4.75, w: 9, h: 0.25, fontFace: "Courier New", fontSize: 8, color: C.dim, charSpacing: 2, margin: 0 });
+
+  const fileName = (idea.name || "concept").replace(/[^a-z0-9]/gi, "-").toLowerCase() + ".pptx";
+  pres.writeFile({ fileName });
+}
+
+
+function parseIdeas(raw) {
+  return raw.split("---").map(block => block.trim()).filter(b => b.length > 50).map((block, i) => {
+    const sections = {};
+    const patterns = [
+      { key: "name", regex: /\*\*\[?([^\]*]+)\]?\*\*/m },
+      { key: "tension", regex: /\*\*THE CULTURAL TENSION:?\*\*\s*([\s\S]*?)(?=\*\*THE BIG IDEA|\*\*THE EXECUTION|$)/i },
+      { key: "bigIdea", regex: /\*\*THE BIG IDEA:?\*\*\s*([\s\S]*?)(?=\*\*THE EXECUTION|\*\*THE ACTIVATION|$)/i },
+      { key: "execution", regex: /\*\*THE EXECUTION:?\*\*\s*([\s\S]*?)(?=\*\*THE ACTIVATION|\*\*WHY IT WORKS|$)/i },
+      { key: "activation", regex: /\*\*THE ACTIVATION:?\*\*\s*([\s\S]*?)(?=\*\*WHY IT WORKS|\*\*SAMPLE|---|$)/i },
+      { key: "why", regex: /\*\*WHY IT WORKS:?\*\*\s*([\s\S]*?)(?=\*\*SAMPLE|\*\*HEADLINE|$)/i },
+      { key: "headline", regex: /\*\*(?:SAMPLE )?HEADLINE:?\*\*\s*([\s\S]*?)$/i },
+    ];
+    patterns.forEach(({ key, regex }) => {
+      const match = block.match(regex);
+      sections[key] = match ? match[1]?.trim().replace(/\*\*/g, "") : "";
+    });
+    if (!sections.name) sections.name = `Concept ${i + 1}`;
+    return sections;
+  });
+}
+
+function ArtDirectionCard({ visual, onRegenerate, loading }) {
+  return (
+    <div style={{ marginTop: 20, animation: "fadeUp .5s ease" }}>
+      <div className="section-label" style={{ marginBottom: 12 }}>Art Direction</div>
+
+      {/* Mood keywords */}
+      {(visual.mood_keywords || []).length > 0 && (
+        <div style={{ display: "flex", gap: 6, flexWrap: "wrap", marginBottom: 14 }}>
+          {visual.mood_keywords.map((kw, i) => (
+            <span key={i} style={{ fontFamily: "'Space Mono',monospace", fontSize: 8, letterSpacing: 2, textTransform: "uppercase", color: "#E85D26", background: "rgba(232,93,38,.08)", border: "1px solid rgba(232,93,38,.15)", padding: "4px 10px", borderRadius: 2 }}>{kw}</span>
+          ))}
+        </div>
+      )}
+
+      {/* Visual Description + Art Direction */}
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(240px,1fr))", gap: 10 }}>
+        <div style={{ padding: 14, background: "rgba(20,20,20,.6)", borderRadius: 4, border: "1px solid #1A1A1A" }}>
+          <div style={{ fontFamily: "'Space Mono',monospace", fontSize: 8, letterSpacing: 2, textTransform: "uppercase", color: "#E85D26", marginBottom: 6 }}>Visual Description</div>
+          <div style={{ fontSize: 12, lineHeight: 1.7, color: "#999" }}>{visual.visual_description || ""}</div>
+        </div>
+        <div style={{ padding: 14, background: "rgba(20,20,20,.6)", borderRadius: 4, border: "1px solid #1A1A1A" }}>
+          <div style={{ fontFamily: "'Space Mono',monospace", fontSize: 8, letterSpacing: 2, textTransform: "uppercase", color: "#E85D26", marginBottom: 6 }}>Art Direction</div>
+          <div style={{ fontSize: 12, lineHeight: 1.7, color: "#999" }}>{visual.art_direction || ""}</div>
+        </div>
+      </div>
+
+      {/* Type Treatment */}
+      {visual.typography && (
+        <div style={{ marginTop: 10, padding: 12, background: "rgba(20,20,20,.4)", borderRadius: 4, border: "1px solid #161616" }}>
+          <span style={{ fontFamily: "'Space Mono',monospace", fontSize: 8, letterSpacing: 2, color: "#555" }}>TYPE TREATMENT: </span>
+          <span style={{ fontSize: 11, color: "#777" }}>{visual.typography}</span>
+        </div>
+      )}
+
+      {/* Color Palette */}
+      {(visual.color_palette || []).length > 0 && (
+        <div style={{ marginTop: 10 }}>
+          <div style={{ fontFamily: "'Space Mono',monospace", fontSize: 8, letterSpacing: 2, color: "#555", marginBottom: 6 }}>COLOR PALETTE</div>
+          <div style={{ display: "flex", gap: 0, borderRadius: 4, overflow: "hidden", height: 28 }}>
+            {(visual.color_palette || []).map((c, i) => (
+              <div key={i} style={{ flex: 1, background: c, display: "flex", alignItems: "center", justifyContent: "center" }} title={c}>
+                <span style={{ fontFamily: "'Space Mono',monospace", fontSize: 7, color: i < 2 ? "rgba(255,255,255,.5)" : "rgba(0,0,0,.35)", letterSpacing: 1 }}>{c}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      <div style={{ display: "flex", gap: 10, marginTop: 14 }}>
+        <button className="btn-g" onClick={onRegenerate} disabled={loading} style={{ fontSize: 9, padding: "8px 14px" }}>
+          {loading ? "Generating..." : "↻ Regenerate Art Direction"}
+        </button>
+      </div>
+    </div>
+  );
+}
+
+function CreativeBriefTool() {
+  const [briefName, setBriefName] = React.useState("");
+  const [clientName, setClientName] = React.useState("");
+  const [sections, setSections] = React.useState(SECTIONS.reduce((acc, s) => ({ ...acc, [s.id]: "" }), {}));
+  const [activeSection, setActiveSection] = React.useState("project");
+  const [aiLoading, setAiLoading] = React.useState({});
+  const [aiSuggestions, setAiSuggestions] = React.useState({});
+  const [showIdeation, setShowIdeation] = React.useState(false);
+  const [creativeIdeas, setCreativeIdeas] = React.useState(null);
+  const [parsedIdeas, setParsedIdeas] = React.useState([]);
+  const [ideaLoading, setIdeaLoading] = React.useState(false);
+  const [completionPct, setCompletionPct] = React.useState(0);
+  const [expandedIdea, setExpandedIdea] = React.useState(0);
+  const [keyVisuals, setKeyVisuals] = React.useState({});
+  const [visualLoading, setVisualLoading] = React.useState({});
+  const [refineMode, setRefineMode] = React.useState({});
+  const [refineFeedback, setRefineFeedback] = React.useState({});
+  const [refineLoading, setRefineLoading] = React.useState({});
+  const [superLoading, setSuperLoading] = React.useState({});
+  const [showSettings, setShowSettings] = React.useState(false);
+  const [mobileSidebarOpen, setMobileSidebarOpen] = React.useState(false);
+  const [mobileTab, setMobileTab] = React.useState("brief"); // "brief" | "ideas"
+  const isMobile = typeof window !== "undefined" && window.innerWidth <= 768;
+  const [session, setSession] = React.useState(null);
+  const [authLoading, setAuthLoading] = React.useState(true);
+  const [showAuth, setShowAuth] = React.useState(false);
+  const [authMode, setAuthMode] = React.useState("signin");
+  const [authEmail, setAuthEmail] = React.useState("");
+  const [authPassword, setAuthPassword] = React.useState("");
+  const [authError, setAuthError] = React.useState("");
+  const [authSubmitting, setAuthSubmitting] = React.useState(false);
+  const [showPaywall, setShowPaywall] = React.useState(false);
+  const [checkoutLoading, setCheckoutLoading] = React.useState(false);
+
+
+
+  // ── Auth lifecycle ───────────────────────────────────────────────────────────
+  React.useEffect(() => {
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setSession(session);
+      setAuthLoading(false);
+      if (!session) setShowAuth(true);
+    });
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      setSession(session);
+      if (session) setShowAuth(false);
+    });
+    const params = new URLSearchParams(window.location.search);
+    if (params.get("subscribed") === "true") {
+      window.history.replaceState({}, "", window.location.pathname);
+      setShowPaywall(false);
+    }
+    return () => subscription.unsubscribe();
+  }, []);
+
+  const handleAuth = async () => {
+    setAuthError(""); setAuthSubmitting(true);
+    try {
+      if (authMode === "signup") {
+        const { error } = await supabase.auth.signUp({ email: authEmail, password: authPassword });
+        if (error) throw error;
+        setAuthError("Check your email to confirm your account, then sign in.");
+        setAuthMode("signin");
+      } else {
+        const { error } = await supabase.auth.signInWithPassword({ email: authEmail, password: authPassword });
+        if (error) throw error;
+      }
+    } catch(e) { setAuthError(e.message || "Authentication failed"); }
+    setAuthSubmitting(false);
+  };
+
+  const handleSignOut = async () => { await supabase.auth.signOut(); setSession(null); setShowAuth(true); };
+
+  const handleCheckout = async () => {
+    if (!session) { setShowAuth(true); return; }
+    setCheckoutLoading(true);
+    try {
+      const res = await fetch("/api/checkout", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", "Authorization": "Bearer " + session.access_token },
+        body: JSON.stringify({ successUrl: window.location.origin + "?subscribed=true", cancelUrl: window.location.origin })
+      });
+      const data = await res.json();
+      if (data.url) window.location.href = data.url;
+    } catch(e) { console.error(e); }
+    setCheckoutLoading(false);
+  };
+
+    const superchargeIdea = async (ideaIndex) => {
+    const idea = parsedIdeas[ideaIndex];
+    if (!idea || !session) { if (!session) setShowAuth(true); return; }
+    setSuperLoading(prev => ({ ...prev, [ideaIndex]: true }));
+    try {
+      const fullBrief = SECTIONS.map(s => `## ${s.title}\n${sections[s.id] || "(not filled in)"}`).join("\n\n");
+      const ideaText = `**[${idea.name}]**
+
+**THE CULTURAL TENSION:** ${idea.tension}
+
+**THE BIG IDEA:** ${idea.bigIdea}
+
+**THE EXECUTION:** ${idea.execution}
+
+**THE ACTIVATION:** ${idea.activation || "(none)"}
+
+**WHY IT WORKS:** ${idea.why}
+
+**SAMPLE HEADLINE:** ${idea.headline}`;
+
+      const result = await callAILong(
+        SUPERCHARGE_PROMPT,
+        `Here is the original creative brief:\n${fullBrief}\n\n---\n\nHere is the concept to supercharge:\n${ideaText}\n\n---\n\nNow push this concept to the absolute edge. Keep the strategic soul. Destroy everything safe. Make it impossible to ignore. Return the full supercharged concept in exactly the same format as above.`,
+        null, session, () => setShowPaywall(true)
+      );
+
+      const supercharged = parseIdeas(result + "\n---")[0];
+      if (supercharged && supercharged.name) {
+        // Mark it as supercharged
+        supercharged._supercharged = true;
+        setParsedIdeas(prev => prev.map((idea, i) => i === ideaIndex ? supercharged : idea));
+        setExpandedIdea(ideaIndex);
+      }
+    } catch(e) {
+      console.error("[superchargeIdea]", e);
+    }
+    setSuperLoading(prev => ({ ...prev, [ideaIndex]: false }));
+  };
+
+  const generateKeyVisual = async (ideaIndex) => {
+    const idea = parsedIdeas[ideaIndex];
+    if (!idea) return;
+    setVisualLoading(prev => ({ ...prev, [ideaIndex]: true }));
+    try {
+      const artDirection = await callAI(
+        `You are a world-class art director. Given a campaign concept, generate a complete art direction package.
+
+Return ONLY valid JSON (no markdown, no backticks):
+{"art_direction": "...", "color_palette": ["#hex1","#hex2","#hex3","#hex4","#hex5"], "mood_keywords": ["word1","word2","word3","word4"], "visual_description": "...", "typography": "..."}
+
+- art_direction: 2-3 sentences of specific direction for a photographer or director — describe the visual style, lighting, casting, and mood
+- color_palette: 5 hex codes that define the campaign's visual world
+- mood_keywords: 4 single words that capture the visual tone
+- visual_description: A vivid, specific description of the hero image — composition, subjects, environment, lighting
+- typography: Specific type direction — font style, weight, treatment, and how it should feel`,
+        `Campaign: ${idea.name}\nBig Idea: ${idea.bigIdea}\nExecution: ${idea.execution}\nTone: ${sections.tone || "bold, modern, striking"}\nClient: ${clientName}\nProject: ${briefName}`,
+        null, session, () => {}
+      );
+      let parsed;
+      try {
+        parsed = JSON.parse(artDirection.replace(/\`\`\`json|\`\`\`/g, "").trim());
+      } catch(e) {
+        parsed = { art_direction: "Bold, cinematic, production-ready.", color_palette: ["#E85D26","#1A1A1A","#E8E4DE","#333333","#888888"], mood_keywords: ["bold","cinematic","striking","modern"], visual_description: idea.bigIdea, typography: "Bold condensed sans-serif headlines, high contrast" };
+      }
+      setKeyVisuals(prev => ({ ...prev, [ideaIndex]: { ...parsed, headline: idea.headline || idea.name } }));
+    } catch(e) {
+      setKeyVisuals(prev => ({ ...prev, [ideaIndex]: { error: true } }));
+    }
+    setVisualLoading(prev => ({ ...prev, [ideaIndex]: false }));
+  };
+
+  React.useEffect(() => {
+    const filled = Object.values(sections).filter(v => v.trim().length > 20).length;
+    setCompletionPct(Math.round((filled / SECTIONS.length) * 100));
+  }, [sections]);
+
+  const handleAIDraft = async (sectionId) => {
+    if (!session) { setShowAuth(true); return; }
+    const section = SECTIONS.find(s => s.id === sectionId);
+    const context = `Client: ${clientName || "Not specified"}\nProject: ${briefName || "Not specified"}\n\nExisting brief content:\n${Object.entries(sections).filter(([, v]) => v.trim()).map(([k, v]) => `${SECTIONS.find(s => s.id === k)?.title}: ${v}`).join("\n\n")}`;
+    setAiLoading(prev => ({ ...prev, [sectionId]: true }));
+    try {
+      const result = await callAI(SECTION_AI_SYSTEM + " " + section.aiPrompt, context, null, session, () => setShowPaywall(true));
+      setAiSuggestions(prev => ({ ...prev, [sectionId]: result }));
+    } catch (e) { setAiSuggestions(prev => ({ ...prev, [sectionId]: "Could not generate. Try again." })); }
+    setAiLoading(prev => ({ ...prev, [sectionId]: false }));
+  };
+
+  const handleRefine = async (sectionId) => {
+    if (!session) { setShowAuth(true); return; }
+    const section = SECTIONS.find(s => s.id === sectionId);
+    if (!sections[sectionId]?.trim()) return;
+    setAiLoading(prev => ({ ...prev, [sectionId]: true }));
+    try {
+      const result = await callAI(SECTION_AI_SYSTEM + " Refine and elevate this section. Make it sharper, more specific, more inspiring to a creative team. Keep the core intent.", `Section: ${section.title}\n\nCurrent draft:\n${sections[sectionId]}\n\nClient: ${clientName}\nProject: ${briefName}`, null, session, () => setShowPaywall(true));
+      setAiSuggestions(prev => ({ ...prev, [sectionId]: result }));
+    } catch (e) { setAiSuggestions(prev => ({ ...prev, [sectionId]: "Could not refine. Try again." })); }
+    setAiLoading(prev => ({ ...prev, [sectionId]: false }));
+  };
+
+  const acceptSuggestion = (sectionId) => {
+    setSections(prev => ({ ...prev, [sectionId]: aiSuggestions[sectionId] }));
+    setAiSuggestions(prev => ({ ...prev, [sectionId]: undefined }));
+  };
+
+  const refineIdea = async (ideaIndex) => {
+    const idea = parsedIdeas[ideaIndex];
+    const feedback = refineFeedback[ideaIndex];
+    if (!idea || !feedback?.trim()) return;
+    setRefineLoading(prev => ({ ...prev, [ideaIndex]: true }));
+    const fullBrief = SECTIONS.map(s => `## ${s.title}\n${sections[s.id] || "(not filled in)"}`).join("\n\n");
+    const ideaText = `Concept Name: ${idea.name}\nCultural Tension: ${idea.tension}\nBig Idea: ${idea.bigIdea}\nExecution: ${idea.execution}\nActivation: ${idea.activation}\nWhy It Works: ${idea.why}\nHeadline: ${idea.headline}`;
+    try {
+      const result = await callAILong(
+        ECD_SYSTEM_PROMPT,
+        `# REFINEMENT REQUEST\n\nHere is the original creative brief:\n${fullBrief}\n\n---\n\nHere is the existing concept you need to refine:\n${ideaText}\n\n---\n\nThe creative director has asked for the following specific change:\n"${feedback}"\n\nRefined the concept based on this feedback. Keep everything that is working — only change what has been asked. Return the full concept in exactly the same format as before (single concept, same structure, separated fields).`,
+        null, session, () => setShowPaywall(true)
+      );
+      const refined = parseIdeas(result + "\n---")[0] || parseIdeas(result)[0];
+      if (refined && refined.bigIdea) {
+        setParsedIdeas(prev => prev.map((idea, i) => i === ideaIndex ? { ...refined } : idea));
+        setRefineMode(prev => ({ ...prev, [ideaIndex]: false }));
+        setRefineFeedback(prev => ({ ...prev, [ideaIndex]: "" }));
+      }
+    } catch(e) { console.error("Refine error:", e); }
+    setRefineLoading(prev => ({ ...prev, [ideaIndex]: false }));
+  };
+
+  const generateCreativeIdeas = async () => {
+    if (!session) { setShowAuth(true); return; }
+    setIdeaLoading(true); setShowIdeation(true); setParsedIdeas([]); setExpandedIdea(0); setKeyVisuals({}); setVisualLoading({});
+    const fullBrief = SECTIONS.map(s => `## ${s.title}\n${sections[s.id] || "(not filled in)"}`).join("\n\n");
+    try {
+      const deliverables = sections["deliverables"] || "(not specified)";
+      const result = await callAILong(ECD_SYSTEM_PROMPT,
+        `# CREATIVE BRIEF
+Client: ${clientName || "Not specified"}
+Project: ${briefName || "Not specified"}
+
+⚠️ DELIVERABLES (READ FIRST — your ideas must be built around these specific outputs):
+${deliverables}
+
+${fullBrief}
+
+REMINDER: Every concept must be expressed through the deliverables listed above. Do not suggest channels or formats that aren't in scope. Shape the creative ideas around what's actually being made.`,
+        null, session, () => setShowPaywall(true));
+      setCreativeIdeas(result);
+      setParsedIdeas(parseIdeas(result));
+    } catch (e) { console.error("[generateCreativeIdeas]", e); setCreativeIdeas("Error: " + (e.message || "Could not generate ideas. Please try again.")); }
+    setIdeaLoading(false);
+  };
+
+  const currentSection = SECTIONS.find(s => s.id === activeSection);
+  const currentIndex = SECTIONS.findIndex(s => s.id === activeSection);
+  const conceptLabels = ["♥ HEART", "✊ GUTS", "✋ HANDS"];
+  const conceptDescs = ["Emotionally Driven", "Culturally Disruptive", "Experiential / Innovative"];
+
+  return (
+    <div style={{ minHeight: "100vh", minHeight: "100dvh", background: "#0A0A0A", color: "#E8E4DE", fontFamily: "'Instrument Sans', 'Helvetica Neue', sans-serif", position: "relative" }}>
+
+      {/* Auth loading */}
+      {authLoading && (
+        <div style={{ position: "fixed", inset: 0, background: "#0A0A0A", zIndex: 2000, display: "flex", alignItems: "center", justifyContent: "center" }}>
+          <PulsingDots msg="Loading..." />
+        </div>
+      )}
+
+      {/* Auth modal */}
+      {!authLoading && showAuth && (
+        <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,.9)", zIndex: 1000, display: "flex", alignItems: "center", justifyContent: "center", padding: 24, backdropFilter: "blur(8px)" }}>
+          <div style={{ background: "#0F0F0F", border: "1px solid #1E1E1E", borderRadius: 8, padding: "40px 36px", width: "100%", maxWidth: 400, animation: "fadeUp .3s ease" }}>
+            <div style={{ textAlign: "center", marginBottom: 32 }}>
+              <div style={{ fontFamily: "'Playfair Display',serif", fontSize: 13, color: "#777", marginBottom: 4 }}>The</div>
+              <div style={{ fontFamily: "'Playfair Display',serif", fontSize: 42, fontWeight: 900, color: "#E85D26", lineHeight: 1 }}>Brief</div>
+              <div style={{ fontFamily: "'Space Mono',monospace", fontSize: 8, letterSpacing: 3, color: "#444", marginTop: 8 }}>AI-POWERED CREATIVE BRIEFS</div>
+            </div>
+            <div style={{ fontFamily: "'Space Mono',monospace", fontSize: 9, letterSpacing: 2, color: "#E85D26", marginBottom: 20, textAlign: "center" }}>
+              {authMode === "signup" ? "CREATE YOUR ACCOUNT" : "SIGN IN TO CONTINUE"}
+            </div>
+            <input type="email" value={authEmail} onChange={e => setAuthEmail(e.target.value)}
+              placeholder="Email address"
+              style={{ width: "100%", background: "rgba(20,20,20,.8)", border: "1px solid #222", borderRadius: 4, color: "#E8E4DE", fontFamily: "'Instrument Sans',sans-serif", fontSize: 14, padding: "12px 14px", marginBottom: 12, display: "block" }}
+              onKeyDown={e => e.key === "Enter" && handleAuth()} />
+            <input type="password" value={authPassword} onChange={e => setAuthPassword(e.target.value)}
+              placeholder="Password"
+              style={{ width: "100%", background: "rgba(20,20,20,.8)", border: "1px solid #222", borderRadius: 4, color: "#E8E4DE", fontFamily: "'Instrument Sans',sans-serif", fontSize: 14, padding: "12px 14px", marginBottom: 16, display: "block" }}
+              onKeyDown={e => e.key === "Enter" && handleAuth()} />
+            {authError && <div style={{ fontFamily: "'Space Mono',monospace", fontSize: 10, color: authError.includes("Check your email") ? "#4a9" : "#E85D26", marginBottom: 14, lineHeight: 1.5 }}>{authError}</div>}
+            <button className="btn-p" onClick={handleAuth} disabled={authSubmitting} style={{ width: "100%", padding: 14, fontSize: 11, letterSpacing: 2 }}>
+              {authSubmitting ? "..." : authMode === "signup" ? "✦ Create Account" : "✦ Sign In"}
+            </button>
+            <div style={{ textAlign: "center", marginTop: 16, fontFamily: "'Space Mono',monospace", fontSize: 9, color: "#444" }}>
+              {authMode === "signup"
+                ? <span>Already have an account? <span style={{ color: "#E85D26", cursor: "pointer" }} onClick={() => setAuthMode("signin")}>Sign in</span></span>
+                : <span>No account? <span style={{ color: "#E85D26", cursor: "pointer" }} onClick={() => setAuthMode("signup")}>Create one free</span></span>}
+            </div>
+            <div style={{ marginTop: 24, padding: "14px 16px", background: "rgba(232,93,38,.04)", border: "1px solid rgba(232,93,38,.1)", borderRadius: 4 }}>
+              <div style={{ fontFamily: "'Space Mono',monospace", fontSize: 8, letterSpacing: 2, color: "#E85D26", marginBottom: 6 }}>FREE TO START</div>
+              <div style={{ fontSize: 12, color: "#666", lineHeight: 1.6 }}>1 free campaign generation. Subscribe for unlimited access — $9/month.</div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Paywall modal */}
+      {showPaywall && (
+        <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,.92)", zIndex: 1000, display: "flex", alignItems: "center", justifyContent: "center", padding: 24, backdropFilter: "blur(8px)" }}>
+          <div style={{ background: "#0F0F0F", border: "1px solid rgba(232,93,38,.2)", borderRadius: 8, padding: "40px 36px", width: "100%", maxWidth: 420, textAlign: "center" }}>
+            <div style={{ fontSize: 36, marginBottom: 16 }}>✦</div>
+            <div style={{ fontFamily: "'Playfair Display',serif", fontSize: 28, fontWeight: 700, marginBottom: 12, lineHeight: 1.2 }}>You've used your free generation</div>
+            <div style={{ fontSize: 14, color: "#666", lineHeight: 1.7, marginBottom: 32 }}>Subscribe to unlock unlimited generations, concept refinements, amplification, and art direction.</div>
+            <div style={{ background: "rgba(232,93,38,.06)", border: "1px solid rgba(232,93,38,.15)", borderRadius: 6, padding: "20px 24px", marginBottom: 28, textAlign: "left" }}>
+              <div style={{ fontFamily: "'Space Mono',monospace", fontSize: 8, letterSpacing: 2, color: "#E85D26", marginBottom: 12 }}>WHAT YOU GET</div>
+              {["Unlimited campaign idea generations", "Concept amplification (⚡ Amplify)", "Iterative concept refinement", "AI art direction on every concept", "PowerPoint export for every idea"].map((item, i) => (
+                <div key={i} style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 8, fontSize: 13, color: "#BBB" }}>
+                  <span style={{ color: "#E85D26" }}>✓</span> {item}
+                </div>
+              ))}
+            </div>
+            <button className="btn-p" onClick={handleCheckout} disabled={checkoutLoading} style={{ width: "100%", padding: 16, fontSize: 12, letterSpacing: 2, marginBottom: 12 }}>
+              {checkoutLoading ? "Redirecting to Stripe..." : "✦ Subscribe — $9 / month"}
+            </button>
+            <button className="btn-g" onClick={() => setShowPaywall(false)} style={{ width: "100%", padding: 12, fontSize: 10 }}>Maybe later</button>
+            <div style={{ fontFamily: "'Space Mono',monospace", fontSize: 8, color: "#333", marginTop: 14 }}>Cancel anytime · Secure payment via Stripe</div>
+          </div>
+        </div>
+      )}
+
+      <style>{`
+        @import url('https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600;700&family=Space+Mono:wght@400;700&family=Playfair+Display:wght@400;700;900&display=swap');
+        @keyframes pulseDot { 0%,100%{opacity:.3;transform:scale(.8)} 50%{opacity:1;transform:scale(1.2)} }
+        @keyframes fadeUp { from{opacity:0;transform:translateY(20px)} to{opacity:1;transform:translateY(0)} }
+        @keyframes slideRight { from{opacity:0;transform:translateX(-12px)} to{opacity:1;transform:translateX(0)} }
+        textarea:focus,input:focus{outline:none}
+        textarea::placeholder,input::placeholder{color:#444}
+        .nav-item{transition:all .2s;cursor:pointer;position:relative}
+        .nav-item:hover{background:rgba(232,93,38,.06)}
+        .nav-item.active{background:rgba(232,93,38,.1)}
+        .nav-item.active::before{content:'';position:absolute;left:0;top:6px;bottom:6px;width:3px;background:#E85D26;border-radius:0 2px 2px 0}
+        .btn-p{background:#E85D26;color:#fff;border:none;padding:10px 20px;font-family:'Space Mono',monospace;font-size:11px;letter-spacing:1.5px;text-transform:uppercase;cursor:pointer;transition:all .2s;border-radius:2px}
+        .btn-p:hover{background:#F06D3A;transform:translateY(-1px)}
+        .btn-p:disabled{opacity:.35;cursor:not-allowed;transform:none}
+        .btn-g{background:transparent;color:#E85D26;border:1px solid rgba(232,93,38,.25);padding:10px 20px;font-family:'Space Mono',monospace;font-size:11px;letter-spacing:1.5px;text-transform:uppercase;cursor:pointer;transition:all .2s;border-radius:2px}
+        .btn-g:hover{border-color:#E85D26;background:rgba(232,93,38,.06)}
+        .btn-g:disabled{opacity:.3;cursor:not-allowed}
+        .concept-card{border:1px solid rgba(232,93,38,.12);border-radius:6px;overflow:hidden;transition:all .3s;animation:fadeUp .5s ease forwards}
+        .concept-card:hover{border-color:rgba(232,93,38,.3)}
+        .concept-header{padding:20px 24px;cursor:pointer;display:flex;justify-content:space-between;align-items:center}
+        .concept-body{padding:0 24px 24px;animation:slideRight .3s ease}
+        .section-label{font-family:'Space Mono',monospace;font-size:9px;letter-spacing:2.5px;text-transform:uppercase;color:#E85D26;margin-bottom:8px}
+        .section-text{font-size:14px;line-height:1.85;color:#BBB}
+        .filled-dot{color:#E85D26}
+        ::-webkit-scrollbar{width:5px}::-webkit-scrollbar-track{background:transparent}::-webkit-scrollbar-thumb{background:#222;border-radius:3px}
+        /* ── Mobile ─────────────────────────────────────────── */
+        @media(max-width:768px){
+          .mobile-hidden{display:none!important}
+          .mobile-sidebar-overlay{position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:90;backdrop-filter:blur(4px)}
+          .mobile-sidebar{position:fixed;left:0;top:0;bottom:0;width:85vw;max-width:320px;z-index:100;transform:translateX(-100%);transition:transform .3s ease}
+          .mobile-sidebar.open{transform:translateX(0)}
+          .mobile-top-bar{display:flex!important;align-items:center;justify-content:space-between;padding:14px 16px;border-bottom:1px solid #161616;background:rgba(10,10,10,.97);position:sticky;top:0;z-index:50}
+          .mobile-bottom-bar{display:flex!important;position:fixed;bottom:0;left:0;right:0;background:rgba(10,10,10,.98);border-top:1px solid #161616;z-index:80;padding:0;height:60px}
+          .mobile-bottom-btn{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;cursor:pointer;color:#555;font-family:'Space Mono',monospace;font-size:7px;letter-spacing:1px;border:none;background:none;padding:8px 4px;transition:color .2s}
+          .mobile-bottom-btn.active{color:#E85D26}
+          .mobile-bottom-btn .icon{font-size:18px}
+          .main-content-area{padding-bottom:70px!important}
+          .concept-header{padding:16px!important}
+          .concept-body{padding:0 16px 16px!important}
+          .btn-p,.btn-g{padding:12px 16px!important;font-size:10px!important;width:100%}
+          .section-text{font-size:13px!important}
+        }
+        @media(min-width:769px){
+          .mobile-top-bar{display:none!important}
+          .mobile-bottom-bar{display:none!important}
+          .mobile-sidebar{position:relative;transform:none!important;width:272px;height:100%}
+          .desktop-sidebar{display:flex!important}
+        }
+      `}</style>
+
+      <div style={{ position: "fixed", inset: 0, zIndex: 0, opacity: .025, pointerEvents: "none", backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E")` }} />
+
+      <div style={{ display: "flex", height: "100vh", height: "100dvh", position: "relative", zIndex: 1, overflow: "hidden" }}>
+
+        {/* MOBILE TOP BAR */}
+        <div className="mobile-top-bar" style={{ display: "none" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+            <button onClick={() => setMobileSidebarOpen(true)} style={{ background: "none", border: "none", color: "#E85D26", fontSize: 22, cursor: "pointer", padding: "0 4px" }}>☰</button>
+            <div style={{ fontFamily: "'Playfair Display',serif", fontWeight: 900 }}>
+              <span style={{ color: "#777", fontSize: 13 }}>The </span><span style={{ color: "#E85D26", fontSize: 18 }}>Brief</span>
+            </div>
+          </div>
+          <div style={{ fontFamily: "'Space Mono',monospace", fontSize: 8, color: "#444", letterSpacing: 2 }}>
+            {showIdeation ? "IDEAS" : activeSection ? SECTIONS.find(s=>s.id===activeSection)?.title?.toUpperCase() : "BRIEF"}
+          </div>
+        </div>
+
+        {/* MOBILE SIDEBAR OVERLAY */}
+        {mobileSidebarOpen && <div className="mobile-sidebar-overlay" onClick={() => setMobileSidebarOpen(false)} />}
+
+        {/* SIDEBAR — works as fixed drawer on mobile, static panel on desktop */}
+        <div className={`mobile-sidebar desktop-sidebar`} style={{ width: 272, borderRight: "1px solid #161616", display: "flex", flexDirection: "column", background: "rgba(10,10,10,.97)", flexShrink: 0, height: "100%", overflowY: "auto", WebkitOverflowScrolling: "touch" }} data-open={mobileSidebarOpen}>
+          <style>{`.mobile-sidebar[data-open="true"]{transform:translateX(0)!important}`}</style>
+          <div style={{ padding: "24px 20px 16px", borderBottom: "1px solid #161616" }}>
+            {/* Mobile close button */}
+            <div className="mobile-top-bar" style={{ display: "none", justifyContent: "flex-end", padding: "0 0 12px 0", borderBottom: "none" }}>
+              <button onClick={() => setMobileSidebarOpen(false)} style={{ background: "none", border: "none", color: "#555", fontSize: 20, cursor: "pointer" }}>✕</button>
+            </div>
+            <div style={{ fontFamily: "'Playfair Display',serif", fontSize: 22, fontWeight: 900, lineHeight: 1.1, marginBottom: 2 }}>
+              <span style={{ color: "#777", fontWeight: 400, fontSize: 16 }}>The</span><br /><span style={{ color: "#E85D26", fontSize: 28 }}>Brief</span><span style={{ fontSize: 9, verticalAlign: "super", color: "#444", marginLeft: 3 }}>™</span>
+            </div>
+            <div style={{ fontFamily: "'Space Mono',monospace", fontSize: 8, letterSpacing: 3, textTransform: "uppercase", color: "#444", marginTop: 6, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+              <span>AI-Powered Creative Briefs</span>
+              <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                  {session && <span style={{ fontFamily: "'Space Mono',monospace", fontSize: 7, color: "#444", maxWidth: 120, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{session.user.email}</span>}
+                  {session && <span onClick={handleSignOut} style={{ cursor: "pointer", fontSize: 11, color: "#444", transition: "color .2s" }} title="Sign out">⏻</span>}
+                  <span onClick={() => setShowSettings(!showSettings)} style={{ cursor: "pointer", fontSize: 14, opacity: .5, transition: "opacity .2s" }} title="Settings">⚙</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Settings Panel */}
+          {showSettings && (
+            <div style={{ padding: "14px 20px", borderBottom: "1px solid #161616", background: "rgba(232,93,38,.03)", animation: "fadeUp .2s ease" }}>
+              <div style={{ fontFamily: "'Space Mono',monospace", fontSize: 8, letterSpacing: 2, textTransform: "uppercase", color: "#E85D26", marginBottom: 10 }}>API Settings</div>
+
+              <div style={{ fontSize: 11, color: "#555", lineHeight: 1.6 }}>Gemini key enables AI art direction on each concept.</div>
+            </div>
+          )}
+
+          <div style={{ padding: "14px 20px", borderBottom: "1px solid #161616" }}>
+            <input value={clientName} onChange={e => setClientName(e.target.value)} placeholder="Client Name" style={{ background: "transparent", border: "none", borderBottom: "1px solid #1A1A1A", color: "#E8E4DE", fontFamily: "'Instrument Sans',sans-serif", fontSize: 13, padding: "6px 0", width: "100%", marginBottom: 6, fontWeight: 600 }} />
+            <input value={briefName} onChange={e => setBriefName(e.target.value)} placeholder="Campaign / Project" style={{ background: "transparent", border: "none", borderBottom: "1px solid #1A1A1A", color: "#E8E4DE", fontFamily: "'Instrument Sans',sans-serif", fontSize: 12, padding: "6px 0", width: "100%" }} />
+          </div>
+
+          <div style={{ padding: "12px 20px", borderBottom: "1px solid #161616" }}>
+            <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 6 }}>
+              <span style={{ fontFamily: "'Space Mono',monospace", fontSize: 8, letterSpacing: 2, textTransform: "uppercase", color: "#444" }}>Brief</span>
+              <span style={{ fontFamily: "'Space Mono',monospace", fontSize: 10, color: "#E85D26" }}>{completionPct}%</span>
+            </div>
+            <div style={{ height: 2, background: "#161616", borderRadius: 1 }}>
+              <div style={{ height: "100%", background: "#E85D26", borderRadius: 1, width: `${completionPct}%`, transition: "width .5s ease" }} />
+            </div>
+          </div>
+
+          <div style={{ flex: 1, overflowY: "auto", padding: "6px 0" }}>
+            {SECTIONS.map((s, i) => (
+              <div key={s.id} className={`nav-item ${activeSection === s.id && !showIdeation ? "active" : ""}`} onClick={() => { setActiveSection(s.id); setShowIdeation(false); setMobileSidebarOpen(false); setMobileTab("brief"); }} style={{ padding: "10px 20px", display: "flex", alignItems: "center", gap: 10 }}>
+                <span style={{ fontFamily: "'Space Mono',monospace", fontSize: 8, color: "#333", width: 14 }}>{String(i + 1).padStart(2, "0")}</span>
+                <span className={sections[s.id]?.trim().length > 20 ? "filled-dot" : ""} style={{ fontSize: 14, width: 18, textAlign: "center", opacity: sections[s.id]?.trim().length > 20 ? 1 : .2 }}>{s.icon}</span>
+                <div>
+                  <div style={{ fontSize: 12, fontWeight: activeSection === s.id && !showIdeation ? 600 : 400, lineHeight: 1.3 }}>{s.title}</div>
+                  <div style={{ fontSize: 9, color: "#444", marginTop: 1 }}>{s.subtitle}</div>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          <div style={{ padding: "16px 20px", borderTop: "1px solid #161616" }}>
+            <button className="btn-p" disabled={completionPct < 38} onClick={generateCreativeIdeas} style={{ width: "100%", padding: "14px", fontSize: 10, letterSpacing: 2 }}>
+              ✦ Generate Campaign Ideas
+            </button>
+            {completionPct < 38 && <div style={{ fontFamily: "'Space Mono',monospace", fontSize: 8, color: "#444", textAlign: "center", marginTop: 6 }}>Fill 3+ sections to unlock</div>}
+            {completionPct >= 38 && !showIdeation && <div style={{ fontFamily: "'Space Mono',monospace", fontSize: 8, color: "#E85D26", textAlign: "center", marginTop: 6, cursor: "pointer", opacity: .7 }} onClick={() => { if (parsedIdeas.length) setShowIdeation(true); }}>
+              {parsedIdeas.length > 0 ? "View last ideas →" : "Your ECD awaits"}
+            </div>}
+          </div>
+        </div>
+
+        {/* MAIN */}
+        <div className="main-content-area" style={{ flex: 1, display: "flex", flexDirection: "column", overflowY: "auto", height: "100%", WebkitOverflowScrolling: "touch" }}>
+          {!showIdeation ? (
+            <div style={{ flex: 1, display: "flex", flexDirection: "column" }}>
+              <div style={{ padding: "36px 44px 20px", borderBottom: "1px solid #161616" }}>
+                <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
+                  <span style={{ fontSize: 26, color: "#E85D26", opacity: .7 }}>{currentSection.icon}</span>
+                  <div>
+                    <div style={{ fontFamily: "'Space Mono',monospace", fontSize: 8, letterSpacing: 3, textTransform: "uppercase", color: "#444", marginBottom: 3 }}>Section {String(currentIndex + 1).padStart(2, "0")} / {String(SECTIONS.length).padStart(2, "0")}</div>
+                    <h1 style={{ fontFamily: "'Playfair Display',serif", fontSize: 28, fontWeight: 700, margin: 0, letterSpacing: -.5 }}>{currentSection.title}</h1>
+                  </div>
+                </div>
+                <p style={{ color: "#555", fontSize: 13, margin: "10px 0 0 40px", lineHeight: 1.5 }}>{currentSection.subtitle}</p>
+              </div>
+
+              <div style={{ flex: 1, padding: "28px 44px" }}>
+                <textarea value={sections[activeSection]} onChange={e => setSections(prev => ({ ...prev, [activeSection]: e.target.value }))} placeholder={currentSection.placeholder} style={{ width: "100%", minHeight: 200, background: "rgba(20,20,20,.6)", border: "1px solid #1A1A1A", borderRadius: 4, padding: 22, color: "#E8E4DE", fontFamily: "'Instrument Sans',sans-serif", fontSize: 14, lineHeight: 1.8, resize: "vertical", transition: "border-color .2s" }} onFocus={e => e.target.style.borderColor = "rgba(232,93,38,.35)"} onBlur={e => e.target.style.borderColor = "#1A1A1A"} />
+
+                <div style={{ display: "flex", gap: 10, marginTop: 14 }}>
+                  <button className="btn-g" onClick={() => handleAIDraft(activeSection)} disabled={aiLoading[activeSection]}>✦ AI Draft</button>
+                  <button className="btn-g" onClick={() => handleRefine(activeSection)} disabled={aiLoading[activeSection] || !sections[activeSection]?.trim()}>↻ Refine</button>
+                </div>
+
+                {aiLoading[activeSection] && <PulsingDots />}
+
+                {aiSuggestions[activeSection] && !aiLoading[activeSection] && (
+                  <div style={{ marginTop: 18, background: "rgba(232,93,38,.03)", border: "1px solid rgba(232,93,38,.12)", borderRadius: 4, padding: 22, animation: "fadeUp .4s ease" }}>
+                    <div className="section-label">AI Suggestion</div>
+                    <div style={{ fontSize: 14, lineHeight: 1.85, color: "#BBB" }}><TypewriterText text={aiSuggestions[activeSection]} /></div>
+                    <div style={{ display: "flex", gap: 10, marginTop: 16 }}>
+                      <button className="btn-p" onClick={() => acceptSuggestion(activeSection)} style={{ fontSize: 10, padding: "8px 16px" }}>Accept</button>
+                      <button className="btn-g" onClick={() => setAiSuggestions(prev => ({ ...prev, [activeSection]: undefined }))} style={{ fontSize: 10, padding: "8px 16px" }}>Dismiss</button>
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              <div style={{ padding: "16px 44px", borderTop: "1px solid #161616", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                <button className="btn-g" onClick={() => { const p = SECTIONS[currentIndex - 1]; if (p) setActiveSection(p.id); }} disabled={currentIndex === 0} style={{ opacity: currentIndex === 0 ? .3 : 1, fontSize: 10, padding: "8px 16px" }}>← Prev</button>
+                <div style={{ display: "flex", gap: 5 }}>
+                  {SECTIONS.map((s, i) => (<div key={s.id} style={{ width: 22, height: 3, borderRadius: 1, background: i === currentIndex ? "#E85D26" : sections[s.id]?.trim().length > 20 ? "rgba(232,93,38,.35)" : "#1A1A1A", cursor: "pointer", transition: "all .2s" }} onClick={() => setActiveSection(s.id)} />))}
+                </div>
+                <button className="btn-g" onClick={() => { const n = SECTIONS[currentIndex + 1]; if (n) setActiveSection(n.id); }} disabled={currentIndex === SECTIONS.length - 1} style={{ opacity: currentIndex === SECTIONS.length - 1 ? .3 : 1, fontSize: 10, padding: "8px 16px" }}>Next →</button>
+              </div>
+            </div>
+          ) : (
+            /* IDEATION */
+            <div style={{ flex: 1, padding: "36px 44px", overflowY: "auto" }}>
+              <div style={{ maxWidth: 820 }}>
+                <div style={{ marginBottom: 36 }}>
+                  <div className="section-label" style={{ marginBottom: 6 }}>Creative Ideation Engine</div>
+                  <h1 style={{ fontFamily: "'Playfair Display',serif", fontSize: 32, fontWeight: 900, margin: "0 0 6px", letterSpacing: -1 }}>Campaign Concepts</h1>
+                  <p style={{ color: "#555", fontSize: 13, margin: 0, lineHeight: 1.6 }}>
+                    for <strong style={{ color: "#CCC" }}>{clientName || "your project"}</strong> — generated by your AI ECD with the combined creative DNA of W+K, 72andSunny, Edelman, and GS&P.
+                  </p>
+                </div>
+
+                {ideaLoading && (
+                  <div style={{ padding: "50px 0", textAlign: "center" }}>
+                    <PulsingDots msg="Your ECD is building campaign concepts..." />
+                    <div style={{ color: "#333", fontSize: 11, marginTop: 16, fontFamily: "'Space Mono',monospace", fontStyle: "italic" }}>Finding the cultural tension. Killing the expected. Being brave.</div>
+                  </div>
+                )}
+
+                {parsedIdeas.length > 0 && !ideaLoading && (
+                  <div>
+                    {parsedIdeas.map((idea, i) => (
+                      <div key={i} className="concept-card" style={{ marginBottom: 16, animationDelay: `${i * .12}s`, opacity: 0, background: expandedIdea === i ? "rgba(232,93,38,.03)" : "rgba(15,15,15,.8)" }}>
+                        <div className="concept-header" onClick={() => setExpandedIdea(expandedIdea === i ? -1 : i)}>
+                          <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
+                            <div style={{ fontFamily: "'Space Mono',monospace", fontSize: 9, letterSpacing: 2, color: "#E85D26", minWidth: 80 }}>{conceptLabels[i] || `CONCEPT ${i + 1}`}</div>
+                            <div>
+                              <div style={{ fontFamily: "'Playfair Display',serif", fontSize: 20, fontWeight: 700, lineHeight: 1.2 }}>{idea.name || `Concept ${i + 1}`}</div>
+                              <div style={{ fontSize: 11, color: "#555", marginTop: 2 }}>{conceptDescs[i] || ""}</div>
+                            </div>
+                          </div>
+                          <span style={{ color: "#444", fontSize: 18, transition: "transform .2s", transform: expandedIdea === i ? "rotate(45deg)" : "rotate(0)" }}>+</span>
+                        </div>
+
+                        {expandedIdea === i && (
+                          <div className="concept-body">
+                            {idea.tension && <div style={{ marginBottom: 20 }}><div className="section-label">The Cultural Tension</div><div className="section-text">{idea.tension}</div></div>}
+                            {idea.bigIdea && <div style={{ marginBottom: 20 }}><div className="section-label">The Big Idea</div><div className="section-text" style={{ fontSize: 16, color: "#E8E4DE", fontWeight: 500, lineHeight: 1.7 }}>{idea.bigIdea}</div></div>}
+                            {idea.execution && <div style={{ marginBottom: 20 }}><div className="section-label">The Execution</div><div className="section-text">{idea.execution}</div></div>}
+                            {idea.activation && <div style={{ marginBottom: 20 }}><div className="section-label">The Activation</div><div className="section-text">{idea.activation}</div></div>}
+                            {idea.why && <div style={{ marginBottom: 20 }}><div className="section-label">Why It Works</div><div className="section-text">{idea.why}</div></div>}
+                            {idea.headline && <div style={{ marginTop: 20, padding: "18px 24px", background: "rgba(232,93,38,.06)", borderLeft: "3px solid #E85D26", borderRadius: "0 4px 4px 0" }}><div style={{ fontFamily: "'Space Mono',monospace", fontSize: 8, letterSpacing: 2, color: "#E85D26", marginBottom: 6 }}>HEADLINE</div><div style={{ fontFamily: "'Playfair Display',serif", fontSize: 20, fontWeight: 700, fontStyle: "italic", lineHeight: 1.4, color: "#E8E4DE" }}>{idea.headline.replace(/^["']|["']$/g, "")}</div></div>}
+
+                            {/* Supercharge Banner — shown after supercharging */}
+                            {idea._supercharged && (
+                              <div style={{ marginTop: 20, padding: "10px 16px", background: "rgba(232,93,38,.08)", border: "1px solid rgba(232,93,38,.25)", borderRadius: 4, display: "flex", alignItems: "center", gap: 8 }}>
+                                <span style={{ fontSize: 14 }}>⚡</span>
+                                <span style={{ fontFamily: "'Space Mono',monospace", fontSize: 8, letterSpacing: 2, color: "#E85D26" }}>AMPLIFIED — THIS CONCEPT HAS BEEN PUSHED TO ITS BOLDEST FORM</span>
+                              </div>
+                            )}
+
+                            {/* Supercharge Button */}
+                            {!superLoading[i] ? (
+                              <div style={{ marginTop: 20 }}>
+                                <button
+                                  onClick={() => superchargeIdea(i)}
+                                  style={{
+                                    width: "100%", padding: "16px", fontSize: 11, letterSpacing: 2,
+                                    background: "linear-gradient(135deg, #1A0A00, #2A1000)",
+                                    border: "1px solid rgba(232,93,38,.4)", borderRadius: 4,
+                                    color: "#E85D26", fontFamily: "'Space Mono',monospace",
+                                    cursor: "pointer", transition: "all .2s",
+                                    display: "flex", alignItems: "center", justifyContent: "center", gap: 10
+                                  }}
+                                  onMouseEnter={e => { e.target.style.borderColor = "#E85D26"; e.target.style.background = "linear-gradient(135deg, #200C00, #3A1800)"; }}
+                                  onMouseLeave={e => { e.target.style.borderColor = "rgba(232,93,38,.4)"; e.target.style.background = "linear-gradient(135deg, #1A0A00, #2A1000)"; }}
+                                >
+                                  <span style={{ fontSize: 16 }}>⚡</span>
+                                  AMPLIFY THIS IDEA
+                                  <span style={{ fontSize: 16 }}>⚡</span>
+                                </button>
+                                <div style={{ fontFamily: "'Space Mono',monospace", fontSize: 8, color: "#444", textAlign: "center", marginTop: 6, letterSpacing: 1 }}>
+                                  Make it bolder, sharper, and impossible to scroll past — same strategy, 10x the conviction
+                                </div>
+                              </div>
+                            ) : (
+                              <div style={{ marginTop: 20, padding: "20px", background: "rgba(232,93,38,.04)", border: "1px solid rgba(232,93,38,.15)", borderRadius: 4, textAlign: "center" }}>
+                                <PulsingDots msg="Making it bolder, sharper, impossible to ignore..." />
+                              </div>
+                            )}
+
+                            {/* Refine + Export row */}
+                            <div style={{ marginTop: 16, borderTop: "1px solid #1A1A1A", paddingTop: 16 }}>
+                              {!refineMode[i] ? (
+                                <div style={{ display: "flex", gap: 10, flexWrap: "wrap", alignItems: "center", flexDirection: "column" }}>
+                                  <button className="btn-g" onClick={() => setRefineMode(prev => ({ ...prev, [i]: true }))} style={{ fontSize: 10, padding: "10px 18px" }}>
+                                    ✎ Tweak This Concept
+                                  </button>
+                                  <button className="btn-g" onClick={() => exportToPptx(parsedIdeas[i], clientName, briefName)} style={{ fontSize: 10, padding: "10px 18px", display: "flex", alignItems: "center", gap: 6 }}>
+                                    ↓ Export to PowerPoint
+                                  </button>
+                                </div>
+                              ) : (
+                                <div style={{ animation: "fadeUp .2s ease" }}>
+                                  <div className="section-label" style={{ marginBottom: 8 }}>What would you like to change?</div>
+                                  <textarea
+                                    value={refineFeedback[i] || ""}
+                                    onChange={e => setRefineFeedback(prev => ({ ...prev, [i]: e.target.value }))}
+                                    placeholder={`e.g. "Make the tone more provocative" or "Shift the activation to something digital-first" or "The big idea is great but the headline needs to be sharper"`}
+                                    style={{ width: "100%", minHeight: 90, background: "rgba(20,20,20,.8)", border: "1px solid rgba(232,93,38,.2)", borderRadius: 4, padding: "12px 14px", color: "#E8E4DE", fontFamily: "'Instrument Sans',sans-serif", fontSize: 13, lineHeight: 1.7, resize: "vertical", transition: "border-color .2s" }}
+                                    onFocus={e => e.target.style.borderColor = "rgba(232,93,38,.5)"}
+                                    onBlur={e => e.target.style.borderColor = "rgba(232,93,38,.2)"}
+                                  />
+                                  <div style={{ display: "flex", gap: 10, marginTop: 10 }}>
+                                    {refineLoading[i] ? (
+                                      <PulsingDots msg="Your ECD is refining the concept..." />
+                                    ) : (
+                                      <>
+                                        <button className="btn-p" onClick={() => refineIdea(i)} disabled={!refineFeedback[i]?.trim()} style={{ fontSize: 10, padding: "10px 18px" }}>
+                                          ✦ Refine Concept
+                                        </button>
+                                        <button className="btn-g" onClick={() => { setRefineMode(prev => ({ ...prev, [i]: false })); setRefineFeedback(prev => ({ ...prev, [i]: "" })); }} style={{ fontSize: 10, padding: "10px 18px" }}>
+                                          Cancel
+                                        </button>
+                                      </>
+                                    )}
+                                  </div>
+                                </div>
+                              )}
+                            </div>
+
+                            {/* Art Direction Section */}
+                            {!keyVisuals[i] && !visualLoading[i] && (
+                              <div style={{ marginTop: 24 }}>
+                                <button className="btn-g" onClick={() => generateKeyVisual(i)} style={{ fontSize: 10, padding: "12px 20px" }}>
+                                  ✦ Generate Art Direction
+                                </button>
+                              </div>
+                            )}
+                            {visualLoading[i] && <PulsingDots msg="Art directing the key visual..." />}
+                            {keyVisuals[i] && !visualLoading[i] && (
+                              <ArtDirectionCard visual={keyVisuals[i]} onRegenerate={() => generateKeyVisual(i)} loading={visualLoading[i]} />
+                            )}
+                          </div>
+                        )}
+                      </div>
+                    ))}
+
+                    <div style={{ display: "flex", gap: 12, marginTop: 28 }}>
+                      <button className="btn-p" onClick={generateCreativeIdeas}>✦ Regenerate</button>
+                      <button className="btn-g" onClick={() => setShowIdeation(false)}>← Back to Brief</button>
+                    </div>
+
+                    <div style={{ marginTop: 32, padding: "20px 24px", background: "rgba(232,93,38,.02)", border: "1px solid rgba(232,93,38,.08)", borderRadius: 4 }}>
+                      <div className="section-label" style={{ marginBottom: 6 }}>About Your AI ECD</div>
+                      <p style={{ fontSize: 12, color: "#555", lineHeight: 1.7, margin: 0 }}>
+                        These concepts are generated by an AI ECD trained on the creative philosophies of Wieden+Kennedy (no formula for creativity, fail better, cultural provocation), 72andSunny (optimism as strategy, world-building, culturally-led transformation), Edelman (earned-first thinking, brand movements, purpose that drives business), and GS&P (mass intimacy, humor, surprise, craft, restraint). Each concept follows a Heart / Guts / Hands framework. Use these as creative springboards — the best ideas get better when real humans push them further.
+                      </p>
+                    </div>
+                  </div>
+                )}
+
+                {creativeIdeas && parsedIdeas.length === 0 && !ideaLoading && (
+                  <div style={{ background: "rgba(232,93,38,.03)", border: "1px solid rgba(232,93,38,.12)", borderRadius: 4, padding: 24, whiteSpace: "pre-wrap", fontSize: 14, lineHeight: 1.85, color: "#BBB" }}>{creativeIdeas}</div>
+                )}
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+
+    const root = ReactDOM.createRoot(document.getElementById('root'));
+    root.render(React.createElement(CreativeBriefTool));
+  </script>
+</body>
+</html>
