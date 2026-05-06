@@ -32,16 +32,31 @@ export default async function handler(req, res) {
       return res.status(403).json({ error: "Free limit reached. Please subscribe to continue." });
     }
 
-    const { briefInput, projectName } = req.body;
-    if (!briefInput) return res.status(400).json({ error: "Brief input required" });
+    const body = req.body || {};
+    const briefInput = body.briefInput || body.brief_input || body.brief || null;
+    const projectName = body.projectName || body.project_name || "";
 
-    // Build prompt from brief fields
-    const briefText = typeof briefInput === "string"
-      ? briefInput
-      : Object.entries(briefInput)
-          .filter(([_, v]) => v)
-          .map(([k, v]) => `${k}: ${v}`)
-          .join("\n");
+    // Build brief text from whatever we received
+    let briefText = "";
+    if (!briefInput) {
+      // Try treating the whole body as the brief fields
+      const fields = ["brand","problem","audience","message","rtb","tone"];
+      const fromBody = fields.filter(f => body[f]).map(f => `${f}: ${body[f]}`).join("\n");
+      if (fromBody) {
+        briefText = fromBody;
+      } else {
+        return res.status(400).json({ error: "Brief input required" });
+      }
+    } else if (typeof briefInput === "string") {
+      briefText = briefInput;
+    } else {
+      briefText = Object.entries(briefInput)
+        .filter(([_, v]) => v)
+        .map(([k, v]) => `${k}: ${v}`)
+        .join("\n");
+    }
+
+    if (!briefText.trim()) return res.status(400).json({ error: "Brief input required" });
 
     const systemPrompt = `You are an AI Creative Director with the combined creative DNA of the world's greatest advertising agencies — W+K, 72andSunny, Edelman, GS&P, BBH, and Droga5.
 
@@ -73,7 +88,7 @@ Format your response clearly with each concept separated and labeled.`;
       .insert({
         user_id: user.id,
         project_name: projectName || null,
-        brief_input: typeof briefInput === "string" ? { raw: briefInput } : briefInput,
+        brief_input: briefInput ? (typeof briefInput === "string" ? { raw: briefInput } : briefInput) : { raw: briefText },
         output: output,
         is_favorited: false,
       })
