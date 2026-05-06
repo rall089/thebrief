@@ -372,6 +372,39 @@ function ArtDirectionCard({ visual, onRegenerate, loading }) {
   );
 }
 
+function HistoryItem({ gen, active, onLoad, onFav, onDelete }) {
+  const [hovered, setHovered] = React.useState(false);
+  const name = gen.project_name || gen.brief_input?.client || gen.brief_input?.brand || "Untitled";
+  const date = new Date(gen.created_at).toLocaleDateString("en-US", { month: "short", day: "numeric" });
+  return (
+    <div
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
+      onClick={() => onLoad(gen)}
+      style={{
+        padding: "10px 20px", cursor: "pointer", borderBottom: "1px solid #111",
+        background: active ? "rgba(232,93,38,.08)" : hovered ? "rgba(255,255,255,.02)" : "transparent",
+        borderLeft: active ? "2px solid #E85D26" : "2px solid transparent",
+        transition: "all .15s", position: "relative"
+      }}>
+      <div style={{ fontSize: 12, fontWeight: 500, color: active ? "#E8E4DE" : "#999", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", paddingRight: 44, marginBottom: 3 }}>{name}</div>
+      <div style={{ fontFamily: "'Space Mono',monospace", fontSize: 9, color: "#444" }}>{date}</div>
+      {hovered && (
+        <div style={{ position: "absolute", right: 10, top: "50%", transform: "translateY(-50%)", display: "flex", gap: 4 }}>
+          <button onClick={e => { e.stopPropagation(); onFav(gen); }}
+            style={{ background: "none", border: "none", color: gen.is_favorited ? "#E85D26" : "#555", cursor: "pointer", fontSize: 13, padding: "3px 4px", lineHeight: 1 }}
+            title={gen.is_favorited ? "Unfavorite" : "Favorite"}>
+            {gen.is_favorited ? "★" : "☆"}
+          </button>
+          <button onClick={e => { e.stopPropagation(); onDelete(gen.id); }}
+            style={{ background: "none", border: "none", color: "#555", cursor: "pointer", fontSize: 11, padding: "3px 4px", lineHeight: 1 }}
+            title="Delete">✕</button>
+        </div>
+      )}
+    </div>
+  );
+}
+
 function CreativeBriefTool() {
   const [briefName, setBriefName] = React.useState("");
   const [clientName, setClientName] = React.useState("");
@@ -406,6 +439,12 @@ function CreativeBriefTool() {
   const [showPaywall, setShowPaywall] = React.useState(false);
   const [checkoutLoading, setCheckoutLoading] = React.useState(false);
 
+  // ── History state ────────────────────────────────────────────────────────────
+  const [sidebarTab, setSidebarTab] = React.useState("brief"); // "brief" | "history"
+  const [historyItems, setHistoryItems] = React.useState([]);
+  const [historyLoading, setHistoryLoading] = React.useState(false);
+  const [activeHistoryId, setActiveHistoryId] = React.useState(null);
+
 
 
   // ── Auth lifecycle ───────────────────────────────────────────────────────────
@@ -414,10 +453,11 @@ function CreativeBriefTool() {
       setSession(session);
       setAuthLoading(false);
       if (!session) setShowAuth(true);
+      else loadHistory(session);
     });
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       setSession(session);
-      if (session) setShowAuth(false);
+      if (session) { setShowAuth(false); loadHistory(session); }
     });
     const params = new URLSearchParams(window.location.search);
     if (params.get("subscribed") === "true") {
@@ -460,7 +500,79 @@ function CreativeBriefTool() {
     setCheckoutLoading(false);
   };
 
-    const superchargeIdea = async (ideaIndex) => {
+  // ── History functions ────────────────────────────────────────────────────────
+  const loadHistory = async (sess) => {
+    const s = sess || session;
+    if (!s) return;
+    setHistoryLoading(true);
+    try {
+      const res = await fetch("/api/history", {
+        headers: { "Authorization": "Bearer " + s.access_token }
+      });
+      const data = await res.json();
+      setHistoryItems(data.generations || []);
+    } catch(e) { console.error("History load error:", e); }
+    setHistoryLoading(false);
+  };
+
+  const loadFromHistory = (gen) => {
+    // Restore brief fields
+    const b = gen.brief_input || {};
+    if (b.project) setBriefName(b.project);
+    if (b.client) setClientName(b.client);
+    // Restore sections from saved prompt snapshot if available
+    const sectionMap = { project: b.project_overview, audience: b.audience, message: b.message, tone: b.tone, competitive: b.competitive, deliverables: b.deliverables, metrics: b.metrics, budget: b.budget };
+    const hasAnySection = Object.values(sectionMap).some(v => v);
+    if (hasAnySection) {
+      setSections(prev => {
+        const next = { ...prev };
+        Object.entries(sectionMap).forEach(([k, v]) => { if (v) next[k] = v; });
+        return next;
+      });
+    }
+    // Restore ideas from output
+    if (gen.output) {
+      const parsed = parseIdeas(gen.output);
+      setCreativeIdeas(gen.output);
+      setParsedIdeas(parsed);
+      setExpandedIdea(0);
+      setKeyVisuals({});
+      setVisualLoading({});
+      setRefineMode({});
+      setShowIdeation(true);
+      setActiveHistoryId(gen.id);
+    }
+    setSidebarTab("brief");
+    setMobileSidebarOpen(false);
+  };
+
+  const toggleFavoriteHistory = async (gen) => {
+    if (!session) return;
+    const newState = !gen.is_favorited;
+    setHistoryItems(prev => prev.map(g => g.id === gen.id ? { ...g, is_favorited: newState } : g));
+    try {
+      await fetch("/api/history", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json", "Authorization": "Bearer " + session.access_token },
+        body: JSON.stringify({ id: gen.id, is_favorited: newState })
+      });
+    } catch(e) { console.error("Favorite error:", e); }
+  };
+
+  const deleteFromHistory = async (genId) => {
+    if (!session || !window.confirm("Delete this generation?")) return;
+    setHistoryItems(prev => prev.filter(g => g.id !== genId));
+    if (activeHistoryId === genId) setActiveHistoryId(null);
+    try {
+      await fetch("/api/history", {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json", "Authorization": "Bearer " + session.access_token },
+        body: JSON.stringify({ id: genId })
+      });
+    } catch(e) { console.error("Delete error:", e); }
+  };
+
+  const superchargeIdea = async (ideaIndex) => {
     const idea = parsedIdeas[ideaIndex];
     if (!idea || !session) { if (!session) setShowAuth(true); return; }
     setSuperLoading(prev => ({ ...prev, [ideaIndex]: true }));
@@ -608,6 +720,7 @@ REMINDER: Every concept must be expressed through the deliverables listed above.
         null, session, () => setShowPaywall(true));
       setCreativeIdeas(result);
       setParsedIdeas(parseIdeas(result));
+      loadHistory();
     } catch (e) { console.error("[generateCreativeIdeas]", e); setCreativeIdeas("Error: " + (e.message || "Could not generate ideas. Please try again.")); }
     setIdeaLoading(false);
   };
@@ -790,6 +903,53 @@ REMINDER: Every concept must be expressed through the deliverables listed above.
             </div>
           )}
 
+          <div style={{ padding: "12px 20px 0", borderBottom: "1px solid #161616" }}>
+            <div style={{ display: "flex", gap: 0 }}>
+              {["brief", "history"].map(tab => (
+                <button key={tab} onClick={() => { setSidebarTab(tab); if (tab === "history") loadHistory(); }}
+                  style={{ flex: 1, padding: "8px 0", background: "none", border: "none", borderBottom: sidebarTab === tab ? "2px solid #E85D26" : "2px solid transparent", color: sidebarTab === tab ? "#E85D26" : "#444", fontFamily: "'Space Mono',monospace", fontSize: 9, letterSpacing: 2, textTransform: "uppercase", cursor: "pointer", transition: "all .2s" }}>
+                  {tab === "brief" ? "Brief" : "History"}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {sidebarTab === "history" ? (
+            /* HISTORY PANEL */
+            <div style={{ flex: 1, overflowY: "auto", padding: "8px 0" }}>
+              {historyLoading && (
+                <div style={{ padding: "20px", textAlign: "center" }}>
+                  <PulsingDots msg="Loading history..." />
+                </div>
+              )}
+              {!historyLoading && historyItems.length === 0 && (
+                <div style={{ padding: "32px 20px", textAlign: "center", color: "#333", fontFamily: "'Space Mono',monospace", fontSize: 9, letterSpacing: 1, lineHeight: 1.8 }}>
+                  No generations yet.<br />Fill in a brief and<br />hit Generate.
+                </div>
+              )}
+              {!historyLoading && historyItems.length > 0 && (() => {
+                const favs = historyItems.filter(g => g.is_favorited);
+                const recent = historyItems.filter(g => !g.is_favorited);
+                return (
+                  <div>
+                    {favs.length > 0 && (
+                      <div>
+                        <div style={{ padding: "10px 20px 4px", fontFamily: "'Space Mono',monospace", fontSize: 8, letterSpacing: 2, color: "#555", textTransform: "uppercase" }}>★ Favorites</div>
+                        {favs.map(gen => <HistoryItem key={gen.id} gen={gen} active={activeHistoryId === gen.id} onLoad={loadFromHistory} onFav={toggleFavoriteHistory} onDelete={deleteFromHistory} />)}
+                      </div>
+                    )}
+                    {recent.length > 0 && (
+                      <div>
+                        <div style={{ padding: "10px 20px 4px", fontFamily: "'Space Mono',monospace", fontSize: 8, letterSpacing: 2, color: "#555", textTransform: "uppercase" }}>Recent</div>
+                        {recent.map(gen => <HistoryItem key={gen.id} gen={gen} active={activeHistoryId === gen.id} onLoad={loadFromHistory} onFav={toggleFavoriteHistory} onDelete={deleteFromHistory} />)}
+                      </div>
+                    )}
+                  </div>
+                );
+              })()}
+            </div>
+          ) : (
+          <React.Fragment>
           <div style={{ padding: "14px 20px", borderBottom: "1px solid #161616" }}>
             <input value={clientName} onChange={e => setClientName(e.target.value)} placeholder="Client Name" style={{ background: "transparent", border: "none", borderBottom: "1px solid #1A1A1A", color: "#E8E4DE", fontFamily: "'Instrument Sans',sans-serif", fontSize: 13, padding: "6px 0", width: "100%", marginBottom: 6, fontWeight: 600 }} />
             <input value={briefName} onChange={e => setBriefName(e.target.value)} placeholder="Campaign / Project" style={{ background: "transparent", border: "none", borderBottom: "1px solid #1A1A1A", color: "#E8E4DE", fontFamily: "'Instrument Sans',sans-serif", fontSize: 12, padding: "6px 0", width: "100%" }} />
@@ -827,6 +987,8 @@ REMINDER: Every concept must be expressed through the deliverables listed above.
               {parsedIdeas.length > 0 ? "View last ideas →" : "Your ECD awaits"}
             </div>}
           </div>
+          </React.Fragment>
+          )}
         </div>
 
         {/* MAIN */}
