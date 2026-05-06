@@ -29,60 +29,64 @@ export default async function handler(req, res) {
 
     if (!usage) return res.status(404).json({ error: "Usage record not found" });
     if (!usage.is_subscribed && usage.generations >= 1) {
-      return res.status(403).json({ error: "Free limit reached. Please subscribe to continue." });
+      return res.status(402).json({ error: "Free limit reached. Please subscribe to continue." });
     }
 
-    const { briefInput, projectName } = req.body;
-    if (!briefInput) return res.status(400).json({ error: "Brief input required" });
+    const body = req.body || {};
 
-    // Build prompt from brief fields
-    const briefText = typeof briefInput === "string"
-      ? briefInput
-      : Object.entries(briefInput)
-          .filter(([_, v]) => v)
-          .map(([k, v]) => `${k}: ${v}`)
-          .join("\n");
+    // Support OLD app format: { systemPrompt, userMessage, maxTokens }
+    // AND new format: { briefInput, projectName }
+    let systemPrompt, userMessage, maxTokens, projectName, briefInput;
 
-    const systemPrompt = `You are an AI Creative Director with the combined creative DNA of the world's greatest advertising agencies — W+K, 72andSunny, Edelman, GS&P, BBH, and Droga5.
+    if (body.systemPrompt && body.userMessage) {
+      // OLD FORMAT — used by the existing app
+      systemPrompt = body.systemPrompt;
+      userMessage = body.userMessage;
+      maxTokens = body.maxTokens || 2000;
+      projectName = null;
+      briefInput = { prompt: body.userMessage.slice(0, 500) };
+    } else {
+      // NEW FORMAT
+      briefInput = body.briefInput || {};
+      projectName = body.projectName || null;
 
-Your job is to take a creative brief and generate bold, distinctive campaign concepts that could win at Cannes.
+      const briefText = typeof briefInput === "string"
+        ? briefInput
+        : Object.entries(briefInput)
+            .filter(([_, v]) => v)
+            .map(([k, v]) => `${k}: ${v}`)
+            .join("\n");
 
-For each concept, provide:
-- A short, punchy campaign name (3-5 words max)
-- A one-line campaign idea (the territory)
-- A compelling insight that drives the idea
-- 3 execution ideas across different channels
-- A potential tagline
+      if (!briefText.trim()) {
+        return res.status(400).json({ error: "Brief input required" });
+      }
 
-Generate 3 distinct campaign concepts. Make them genuinely different from each other — different territories, different emotional registers, different strategic angles. No safe, predictable ideas.
+      systemPrompt = `You are an AI Creative Director with the combined creative DNA of W+K, 72andSunny, Edelman, GS&P, BBH, and Droga5. Generate bold, distinctive campaign concepts.`;
+      userMessage = `Here is the brief:\n\n${briefText}\n\nGenerate 3 campaign concepts.`;
+      maxTokens = 2000;
+    }
 
-Format your response clearly with each concept separated and labeled.`;
-
+    // Call Claude
     const message = await anthropic.messages.create({
       model: "claude-sonnet-4-5",
-      max_tokens: 2000,
+      max_tokens: maxTokens || 2000,
       system: systemPrompt,
-      messages: [{ role: "user", content: `Here is the brief:\n\n${briefText}\n\nGenerate 3 campaign concepts.` }],
+      messages: [{ role: "user", content: userMessage }],
     });
 
     const output = message.content[0].text;
 
-    // Save generation to database (private to this user)
-    const { data: generation, error: saveError } = await supabase
-      .from("generations")
-      .insert({
+    // Save to history (non-blocking)
+    try {
+      await supabase.from("generations").insert({
         user_id: user.id,
         project_name: projectName || null,
-        brief_input: typeof briefInput === "string" ? { raw: briefInput } : briefInput,
+        brief_input: briefInput,
         output: output,
         is_favorited: false,
-      })
-      .select()
-      .single();
-
-    if (saveError) {
-      console.error("Error saving generation:", saveError);
-      // Don't fail the request — still return the output
+      });
+    } catch (saveErr) {
+      console.error("History save error (non-fatal):", saveErr);
     }
 
     // Update usage count
@@ -91,10 +95,7 @@ Format your response clearly with each concept separated and labeled.`;
       .update({ generations: (usage.generations || 0) + 1 })
       .eq("user_id", user.id);
 
-    return res.status(200).json({
-      output,
-      generationId: generation?.id || null,
-    });
+    return res.status(200).json({ output });
 
   } catch (error) {
     console.error("Generate error:", error);
