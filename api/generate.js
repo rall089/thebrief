@@ -95,7 +95,7 @@ export default async function handler(req, res) {
       .update({ generations: (usage.generations || 0) + 1 })
       .eq("user_id", user.id);
 
-    return res.status(200).json({ output });
+    return res.status(200).json({ output, text: output });
 
   } catch (error) {
     console.error("Generate error:", error);
