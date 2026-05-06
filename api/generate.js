@@ -2,75 +2,102 @@ import Anthropic from "@anthropic-ai/sdk";
 import { createClient } from "@supabase/supabase-js";
 
 const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
-
 const supabase = createClient(
   process.env.SUPABASE_URL,
-  process.env.SUPABASE_SERVICE_KEY // service key — never exposed to browser
+  process.env.SUPABASE_SERVICE_KEY
 );
 
 export default async function handler(req, res) {
-  // CORS
-  res.setHeader("Access-Control-Allow-Origin", "*");
-  res.setHeader("Access-Control-Allow-Methods", "POST, OPTIONS");
-  res.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization");
-  if (req.method === "OPTIONS") return res.status(200).end();
-  if (req.method !== "POST") return res.status(405).json({ error: "Method not allowed" });
+  if (req.method !== "POST") {
+    return res.status(405).json({ error: "Method not allowed" });
+  }
 
   try {
-    const { systemPrompt, userMessage, maxTokens = 1000 } = req.body;
+    const authHeader = req.headers.authorization;
+    if (!authHeader) return res.status(401).json({ error: "Unauthorized" });
 
-    // 1. Verify Supabase JWT from Authorization header
-    const token = req.headers.authorization?.replace("Bearer ", "");
-    if (!token) return res.status(401).json({ error: "Not authenticated" });
-
+    const token = authHeader.replace("Bearer ", "");
     const { data: { user }, error: authError } = await supabase.auth.getUser(token);
-    if (authError || !user) return res.status(401).json({ error: "Invalid session" });
+    if (authError || !user) return res.status(401).json({ error: "Unauthorized" });
 
-    // 2. Check usage record
-    let { data: usage, error: usageError } = await supabase
+    // Check usage
+    const { data: usage } = await supabase
       .from("usage")
       .select("*")
       .eq("user_id", user.id)
       .single();
 
-    // Create usage record if first time
-    if (usageError && usageError.code === "PGRST116") {
-      const { data: newUsage } = await supabase
-        .from("usage")
-        .insert({ user_id: user.id, generations: 0, is_subscribed: false })
-        .select()
-        .single();
-      usage = newUsage;
-    }
-
-    // 3. Enforce paywall — 1 free generation, then subscription required
+    if (!usage) return res.status(404).json({ error: "Usage record not found" });
     if (!usage.is_subscribed && usage.generations >= 1) {
-      return res.status(402).json({
-        error: "free_limit_reached",
-        message: "You've used your free generation. Subscribe to continue."
-      });
+      return res.status(403).json({ error: "Free limit reached. Please subscribe to continue." });
     }
 
-    // 4. Call Anthropic
-    const response = await anthropic.messages.create({
+    const { briefInput, projectName } = req.body;
+    if (!briefInput) return res.status(400).json({ error: "Brief input required" });
+
+    // Build prompt from brief fields
+    const briefText = typeof briefInput === "string"
+      ? briefInput
+      : Object.entries(briefInput)
+          .filter(([_, v]) => v)
+          .map(([k, v]) => `${k}: ${v}`)
+          .join("\n");
+
+    const systemPrompt = `You are an AI Creative Director with the combined creative DNA of the world's greatest advertising agencies — W+K, 72andSunny, Edelman, GS&P, BBH, and Droga5.
+
+Your job is to take a creative brief and generate bold, distinctive campaign concepts that could win at Cannes.
+
+For each concept, provide:
+- A short, punchy campaign name (3-5 words max)
+- A one-line campaign idea (the territory)
+- A compelling insight that drives the idea
+- 3 execution ideas across different channels
+- A potential tagline
+
+Generate 3 distinct campaign concepts. Make them genuinely different from each other — different territories, different emotional registers, different strategic angles. No safe, predictable ideas.
+
+Format your response clearly with each concept separated and labeled.`;
+
+    const message = await anthropic.messages.create({
       model: "claude-sonnet-4-5",
-      max_tokens: maxTokens,
+      max_tokens: 2000,
       system: systemPrompt,
-      messages: [{ role: "user", content: userMessage }]
+      messages: [{ role: "user", content: `Here is the brief:\n\n${briefText}\n\nGenerate 3 campaign concepts.` }],
     });
 
-    const text = response.content.map(b => b.text || "").join("\n");
+    const output = message.content[0].text;
 
-    // 5. Increment usage counter
+    // Save generation to database (private to this user)
+    const { data: generation, error: saveError } = await supabase
+      .from("generations")
+      .insert({
+        user_id: user.id,
+        project_name: projectName || null,
+        brief_input: typeof briefInput === "string" ? { raw: briefInput } : briefInput,
+        output: output,
+        is_favorited: false,
+      })
+      .select()
+      .single();
+
+    if (saveError) {
+      console.error("Error saving generation:", saveError);
+      // Don't fail the request — still return the output
+    }
+
+    // Update usage count
     await supabase
       .from("usage")
       .update({ generations: (usage.generations || 0) + 1 })
       .eq("user_id", user.id);
 
-    return res.status(200).json({ text });
+    return res.status(200).json({
+      output,
+      generationId: generation?.id || null,
+    });
 
-  } catch (err) {
-    console.error("generate error:", err);
-    return res.status(500).json({ error: err.message || "Server error" });
+  } catch (error) {
+    console.error("Generate error:", error);
+    return res.status(500).json({ error: error.message });
   }
 }
